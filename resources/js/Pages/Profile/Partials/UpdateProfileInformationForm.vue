@@ -1,9 +1,9 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import InputError from "@/Components/InputError.vue";
+import InputLabel from "@/Components/InputLabel.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import TextInput from "@/Components/TextInput.vue";
+import { useForm, usePage } from "@inertiajs/vue3";
 
 defineProps({
     status: {
@@ -11,11 +11,12 @@ defineProps({
     },
 });
 
-const user = usePage().props.auth.user;
+const { props } = usePage();
+const { errors, auth } = props;
 
 const form = useForm({
-    name: user.name,
-    email: user.email,
+    name: auth.name,
+    email: auth.email,
 });
 </script>
 

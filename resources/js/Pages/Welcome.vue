@@ -1,110 +1,146 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import Sidebar from "@/Components/Sidebar.vue";
+import { usePage, Head, Link } from "@inertiajs/vue3";
+import { ref } from "vue";
 
-defineProps({
-    canLogin: {
-        type: Boolean,
-    },
-    canRegister: {
-        type: Boolean,
-    },
-});
+const { props } = usePage();
+const { errors, auth } = props;
 
 function handleImageError() {
-    document.getElementById('image-container')?.classList.add('!hidden');
-    document.getElementById('listing-card')?.classList.add('!row-span-1');
-    document.getElementById('listing-card-content')?.classList.add('!flex-row');
+    document.getElementById("image-container")?.classList.add("!hidden");
+    document.getElementById("listing-card")?.classList.add("!row-span-1");
+    document.getElementById("listing-card-content")?.classList.add("!flex-row");
+}
+
+const isSidebarOpen = ref(false);
+function toggleSidebar() {
+    isSidebarOpen.value = !isSidebarOpen.value;
 }
 </script>
 
 <template>
     <Head title="Welcome to" />
-    <div class="bg-gray-100 text-black">
-        <div
-        class="relative flex min-h-screen flex-col items-center justify-center selection:bg-[#FF2D20] selection:text-white"
-        >
-        <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
-            <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
-                <div class="flex lg:col-start-2 lg:justify-center">
-                    <ApplicationLogo class="h-20 w-20 fill-current text-gray-800" />
-                </div>
-                <nav v-if="canLogin" class="-mx-3 flex flex-1 justify-end">
-                    <Link
-                        v-if="$page.props.auth.user"
-                        :href="route('dashboard')"
-                        class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
-                    >
-                        Dashboard
-                    </Link>
 
-                    <template v-else>
+    <div class="flex min-h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <Sidebar :isOpen="isSidebarOpen" @toggle="toggleSidebar" />
+
+        <!-- Main Content -->
+        <div
+            class="flex flex-col w-full min-h-screen transition-all duration-300 lg:ml-64"
+            :class="{ 'lg:ml-64': isSidebarOpen }"
+        >
+            <!-- Mobile Sidebar Toggle -->
+            <button
+                class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md"
+                @click="toggleSidebar"
+            >
+                <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16"
+                    />
+                </svg>
+            </button>
+
+            <!-- Header -->
+            <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <header
+                    class="grid grid-cols-1 items-center gap-4 py-8 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                    <div
+                        class="flex justify-center sm:col-start-1 sm:justify-start lg:col-start-2 lg:justify-center"
+                    >
+                        <ApplicationLogo
+                            class="h-16 w-16 fill-current text-gray-800"
+                        />
+                    </div>
+                    <nav class="flex justify-center sm:justify-end">
                         <Link
+                            v-if="auth.isGuest"
                             :href="route('login')"
                             class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
                         >
                             Log in
                         </Link>
-
                         <Link
-                            v-if="canRegister"
+                            v-if="auth.isGuest"
                             :href="route('register')"
-                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
+                            class="ml-4 rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
                         >
                             Register
                         </Link>
-                    </template>
-                </nav>
-            </header>
+                        <Link
+                            v-if="
+                                !auth.isGuest &&
+                                (auth.role === 'admin' ||
+                                    auth.role === 'customer')
+                            "
+                            :href="route('dashboard')"
+                            class="ml-4 rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
+                        >
+                            Dashboard
+                        </Link>
+                    </nav>
+                </header>
+            </div>
 
-            <main class="mt-6">
-                <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
+            <!-- Main Section -->
+            <main class="mt-6 px-4 sm:px-6 lg:px-8">
+                <div
+                    class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                >
+                    <!-- Example Card -->
                     <a
-                        href="http://localhost:8000/login"
+                        v-for="i in 5"
+                        :key="i"
+                        href="/login"
                         id="listing-card"
-                        class="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[4px_4px_10px_rgba(0,0,0,0.08)] ring-1 ring-black/10 transition duration-300 hover:text-black/70 hover:ring-black/30 focus:outline-none focus-visible:ring-[#FF2D20] md:row-span-3 lg:p-10 lg:pb-10"
+                        class="flex flex-col items-start gap-4 overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition duration-300 hover:text-black/70 hover:ring-gray-300 focus:outline-none focus-visible:ring-[#FF2D20]"
                     >
                         <div
                             id="image-container"
-                            class="relative flex w-full flex-1 items-stretch"
+                            class="relative w-full aspect-video"
                         >
                             <img
                                 src="/images/bicikla.jpg"
-                                alt="..."
-                                class="aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)]"
+                                alt="MTB 29"
+                                class="w-full h-full rounded-md object-cover object-top"
                                 @error="handleImageError"
                             />
                         </div>
 
-                        <div class="relative flex items-center gap-6 lg:items-end">
-                            <div
-                                id="listing-card-content"
-                                class="flex items-start gap-6 lg:flex-col"
-                            >
-                                <div class="pt-3 sm:pt-5 lg:pt-0">
-                                    <h2 class="text-xl font-semibold text-black">
-                                        MTB 29
-                                    </h2>
-
-                                    <p class="mt-4 text-sm/relaxed text-black/70">
-                                        Dobro očuvan bicikl, korišćen svega nekoliko puta. Idealno za gradske vožnje...
-                                    </p>
-                                    
-                                    <p class="mt-4 text-lg font-semibold text-black">
-                                        12.000 RSD
-                                    </p>
-                                </div>
-                            </div>
+                        <div
+                            id="listing-card-content"
+                            class="flex flex-col w-full"
+                        >
+                            <h2 class="text-lg font-semibold text-black">
+                                MTB 29
+                            </h2>
+                            <p class="mt-2 text-sm text-gray-600">
+                                Dobro očuvan bicikl, korišćen svega nekoliko
+                                puta. Idealno za gradske vožnje...
+                            </p>
+                            <p class="mt-3 text-base font-semibold text-black">
+                                12.000 RSD
+                            </p>
                         </div>
                     </a>
                 </div>
             </main>
 
-            <footer class="py-16 text-center text-sm text-black">
+            <!-- Footer -->
+            <footer class="py-12 text-center text-sm text-gray-600">
                 Developed with ❤️ by me
             </footer>
         </div>
     </div>
-</div>
-
 </template>
