@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [ListingController::class, 'index'])->name('home');
+//Public category route for displaying listings by category.
+Route::get('/category/{category}', [CategoryController::class, 'show'])->name('category.show');
 
 Route::middleware(['auth'])->group(function () {
     //Profile routes group.
@@ -32,9 +34,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/customers', function () {
         return Inertia::render('Admin/Customers');
     })->name('admin.customers');
-    Route::get('/categories', function () {
-        return Inertia::render('Admin/Categories');
-    })->name('admin.categories');
+    //Categories.
+    Route::get('/categories', [CategoryController::class, 'topcategories'])->name('admin.categories');
+    Route::get('/categories/all', [CategoryController::class, 'index'])->name('admin.categories.index');
+    Route::get('/categories/{category}/subcategories', [CategoryController::class, 'subcategories'])->name('admin.categories.subcategories');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
+    Route::patch('/categories/{category}', [CategoryController::class, 'update'])->name('admin.categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
+    //
     Route::get('/listings', function () {
         return Inertia::render('Admin/Listings');
     })->name('admin.listings');
