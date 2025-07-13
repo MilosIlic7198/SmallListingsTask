@@ -2,7 +2,7 @@
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import { Link, useForm } from "@inertiajs/vue3";
 import { watch } from "vue";
-import { useSidebarStore } from "@/stores/SidebarStore";
+import { useStore } from "@/stores/Store";
 
 const props = defineProps({
     isOpen: {
@@ -15,10 +15,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["toggle"]);
-const store = useSidebarStore();
+const store = useStore();
 
 const form = useForm({
     category_id: null,
+    search: null,
 });
 
 // Watch parent_id to fetch child categories
@@ -44,6 +45,7 @@ watch(
 // Handle category filter submission
 function applyCategoryFilter() {
     form.category_id = store.grandchild_id || store.child_id || store.parent_id;
+    form.search = store.search;
 
     form.get(route("home"), {
         data: {
@@ -74,39 +76,12 @@ function clearFilter() {
 
 <template>
     <aside
-        class="fixed top-0 left-0 z-40 h-screen w-64 bg-white p-6 shadow-lg transition-transform duration-300 lg:translate-x-0"
+        class="fixed top-0 left-0 z-40 h-screen w-64 bg-white p-6 pt-20 shadow-sm transition-transform duration-300 lg:translate-x-0"
         :class="{
             'translate-x-0': isOpen,
             '-translate-x-full': !isOpen,
         }"
     >
-        <!-- Logo + Close Button -->
-        <div class="flex items-center justify-between mb-8">
-            <Link :href="route('home')">
-                <ApplicationLogo
-                    class="block h-9 w-auto fill-current text-gray-800"
-                />
-            </Link>
-            <button
-                class="p-2 rounded-md hover:bg-gray-100 lg:hidden"
-                @click="$emit('toggle')"
-            >
-                <svg
-                    class="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    />
-                </svg>
-            </button>
-        </div>
-
         <!-- Category Filter -->
         <nav class="space-y-4">
             <h3 class="text-lg font-semibold text-gray-700">
@@ -117,14 +92,14 @@ function clearFilter() {
             <div>
                 <label
                     for="parent_id"
-                    class="block textsm font-medium text-gray-700"
+                    class="block text-sm font-medium text-gray-700"
                 >
                     Category
                 </label>
                 <select
                     id="parent_id"
                     v-model="store.parent_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                     <option :value="null">All Categories</option>
                     <option
@@ -148,7 +123,7 @@ function clearFilter() {
                 <select
                     id="child_id"
                     v-model="store.child_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                     <option :value="null">All Subcategories</option>
                     <option
@@ -172,7 +147,7 @@ function clearFilter() {
                 <select
                     id="grandchild_id"
                     v-model="store.grandchild_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                     <option :value="null">All Sub-Subcategories</option>
                     <option
@@ -189,7 +164,7 @@ function clearFilter() {
             <div class="flex justify-end">
                 <button
                     @click="applyCategoryFilter"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     :disabled="form.processing"
                 >
                     Apply Filter
@@ -198,7 +173,7 @@ function clearFilter() {
             <div class="flex justify-end">
                 <button
                     @click="clearFilter"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
                     :disabled="form.processing"
                 >
                     Clear Filter

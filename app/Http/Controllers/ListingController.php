@@ -17,13 +17,30 @@ class ListingController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Listing::query();
+        $query = Listing::query()->with('category'); // Eager load the category relationship
 
-        if ($request->has('category_id') && $request->category_id) {
+        if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        $listings = $query->paginate(8)->appends($request->only('category_id'));
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%")
+                ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                  $categoryQuery->where('name', 'like', "%{$search}%");
+                });
+
+                if (is_numeric($search)) {
+                    $q->orWhere('price', '=', $search);
+                }
+            });
+        }
+
+        $listings = $query->paginate(8)->withQueryString();
         $categories = Category::whereNull('parent_id')->get();
 
         return Inertia::render('Welcome', [

@@ -1,7 +1,8 @@
 <script setup>
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Sidebar from "@/Components/Sidebar.vue";
-import { usePage, Head, Link } from "@inertiajs/vue3";
+import { useStore } from "@/stores/Store";
+import { usePage, Head, Link, router } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 defineProps({
@@ -15,6 +16,7 @@ defineProps({
 
 const { props } = usePage();
 const { errors, auth, listings } = props;
+const store = useStore(); // Use the store
 
 function handleImageError() {
     document.getElementById("image-container")?.classList.add("!hidden");
@@ -25,6 +27,16 @@ function handleImageError() {
 const isSidebarOpen = ref(false);
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
+}
+
+function searchListings() {
+    // Update the search term in the store
+    store.setSearch(store.search);
+    router.get(route("home"), {
+        category_id:
+            store.grandchild_id || store.child_id || store.parent_id || null,
+        search: store.search,
+    });
 }
 </script>
 
@@ -69,14 +81,21 @@ function toggleSidebar() {
                 <header
                     class="grid grid-cols-1 items-center gap-4 py-8 sm:grid-cols-2 lg:grid-cols-3"
                 >
+                    <!-- Logo -->
                     <div
                         class="flex justify-center sm:col-start-1 sm:justify-start lg:col-start-2 lg:justify-center"
                     >
-                        <ApplicationLogo
-                            class="h-16 w-16 fill-current text-gray-800"
-                        />
+                        <Link :href="route('home')">
+                            <ApplicationLogo
+                                class="h-16 w-16 fill-current text-gray-800"
+                            />
+                        </Link>
                     </div>
-                    <nav class="flex justify-center sm:justify-end">
+
+                    <!-- Navigation Links -->
+                    <nav
+                        class="flex justify-center sm:justify-end sm:col-start-2 sm:col-span-1 lg:col-start-3"
+                    >
                         <Link
                             v-if="auth.isGuest"
                             :href="route('login')"
@@ -103,6 +122,29 @@ function toggleSidebar() {
                             Dashboard
                         </Link>
                     </nav>
+
+                    <!-- Search Form -->
+                    <div
+                        class="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-center"
+                    >
+                        <form
+                            @submit.prevent="searchListings"
+                            class="flex flex-col sm:flex-row gap-2 items-center w-full max-w-lg"
+                        >
+                            <input
+                                v-model="store.search"
+                                type="text"
+                                placeholder="Search listings..."
+                                class="flex-1 rounded-md border-gray-300 shadow-sm px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                            />
+                            <button
+                                type="submit"
+                                class="bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
+                            >
+                                Search
+                            </button>
+                        </form>
+                    </div>
                 </header>
             </div>
 

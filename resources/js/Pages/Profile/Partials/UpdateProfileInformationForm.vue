@@ -1,8 +1,4 @@
 <script setup>
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 
 defineProps({
@@ -37,39 +33,54 @@ const form = useForm({
             class="mt-6 space-y-6"
         >
             <div>
-                <InputLabel for="name" value="Name" />
-
-                <TextInput
+                <label
+                    for="name"
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    Name
+                </label>
+                <input
                     id="name"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.name"
                     required
                     autofocus
                     autocomplete="name"
                 />
-
-                <InputError class="mt-2" :message="form.errors.name" />
+                <p v-if="form.errors.name" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.name }}
+                </p>
             </div>
 
             <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
+                <label
+                    for="email"
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    Email
+                </label>
+                <input
                     id="email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.email"
                     required
                     autocomplete="username"
                 />
-
-                <InputError class="mt-2" :message="form.errors.email" />
+                <p v-if="form.errors.email" class="mt-2 text-sm text-red-600">
+                    {{ form.errors.email }}
+                </p>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
-
+                <button
+                    type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                    :disabled="form.processing"
+                >
+                    Save
+                </button>
                 <Transition
                     enter-active-class="transition ease-in-out"
                     enter-from-class="opacity-0"

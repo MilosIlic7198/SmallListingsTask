@@ -1,8 +1,4 @@
 <script setup>
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
@@ -43,7 +39,7 @@ const submitEdit = () => {
         onSuccess: () => {
             isEditing.value = false;
             editForm.reset();
-            emit("updated"); // Emit updated for edit
+            emit("updated");
         },
         onError: (errors) => {
             console.error(errors);
@@ -54,16 +50,12 @@ const submitEdit = () => {
 const deleteCategory = (categoryId) => {
     deleteForm.delete(route("admin.categories.destroy", categoryId), {
         onSuccess: (response) => {
-            // Check if there's a flash error message in the response
             const type = response.props.flash?.type;
             if (type == "error") {
-                // Set the error for this category
                 categoryErrors.value[categoryId] =
                     response.props.flash?.message;
             } else {
-                // No error, proceed with emitting update
                 emit("updated");
-                // Clear any previous error
                 categoryErrors.value[categoryId] = null;
             }
         },
@@ -76,11 +68,9 @@ const deleteCategory = (categoryId) => {
 
 <template>
     <div :class="{ 'ml-6': depth > 0 }">
-        <InputError
-            v-if="categoryErrors[category.id]"
-            class="mt-1 text-red-500"
-            :message="categoryErrors[category.id]"
-        />
+        <p v-if="categoryErrors[category.id]" class="mt-1 text-sm text-red-600">
+            {{ categoryErrors[category.id] }}
+        </p>
         <!-- Category Row -->
         <div
             class="flex items-center justify-between py-2 border-b border-gray-200"
@@ -97,29 +87,30 @@ const deleteCategory = (categoryId) => {
                     class="flex items-center space-x-2"
                 >
                     <div>
-                        <InputLabel
-                            for="edit_name"
-                            value="Category Name"
-                            class="sr-only"
-                        />
-                        <TextInput
+                        <label for="edit_name" class="sr-only">
+                            Category Name
+                        </label>
+                        <input
                             id="edit_name"
                             v-model="editForm.name"
                             type="text"
-                            class="block w-64"
+                            class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             placeholder="Enter category name"
                         />
-                        <InputError
-                            class="mt-1"
-                            :message="editForm.errors.name"
-                        />
+                        <p
+                            v-if="editForm.errors.name"
+                            class="mt-1 text-sm text-red-600"
+                        >
+                            {{ editForm.errors.name }}
+                        </p>
                     </div>
-                    <PrimaryButton
+                    <button
                         type="submit"
                         :disabled="editForm.processing"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
                     >
                         Save
-                    </PrimaryButton>
+                    </button>
                     <Transition
                         enter-active-class="transition ease-in-out"
                         enter-from-class="opacity-0"

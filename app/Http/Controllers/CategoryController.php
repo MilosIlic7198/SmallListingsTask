@@ -115,7 +115,7 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         if ($category->children()->exists()) {
-            return redirect()->route('admin.categories')->with('flash', [
+            return redirect()->route('admin.categories.create')->with('flash', [
             'type' => 'error',
             'message' => 'Cannot delete category with subcategories.',
             'category_id' => $category->id,

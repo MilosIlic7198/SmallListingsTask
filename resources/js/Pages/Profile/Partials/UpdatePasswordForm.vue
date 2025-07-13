@@ -1,8 +1,4 @@
 <script setup>
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
@@ -46,61 +42,81 @@ const updatePassword = () => {
 
         <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
             <div>
-                <InputLabel for="current_password" value="Current Password" />
-
-                <TextInput
+                <label
+                    for="current_password"
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    Current Password
+                </label>
+                <input
                     id="current_password"
                     ref="currentPasswordInput"
                     v-model="form.current_password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     autocomplete="current-password"
                 />
-
-                <InputError
-                    :message="form.errors.current_password"
-                    class="mt-2"
-                />
+                <p
+                    v-if="form.errors.current_password"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.current_password }}
+                </p>
             </div>
 
             <div>
-                <InputLabel for="password" value="New Password" />
-
-                <TextInput
+                <label
+                    for="password"
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    New Password
+                </label>
+                <input
                     id="password"
                     ref="passwordInput"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     autocomplete="new-password"
                 />
-
-                <InputError :message="form.errors.password" class="mt-2" />
+                <p
+                    v-if="form.errors.password"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.password }}
+                </p>
             </div>
 
             <div>
-                <InputLabel
+                <label
                     for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    Confirm Password
+                </label>
+                <input
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     autocomplete="new-password"
                 />
-
-                <InputError
-                    :message="form.errors.password_confirmation"
-                    class="mt-2"
-                />
+                <p
+                    v-if="form.errors.password_confirmation"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.password_confirmation }}
+                </p>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
-
+                <button
+                    type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                    :disabled="form.processing"
+                >
+                    Save
+                </button>
                 <Transition
                     enter-active-class="transition ease-in-out"
                     enter-from-class="opacity-0"

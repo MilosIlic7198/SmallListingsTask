@@ -1,12 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
-import Sidebar from "@/Components/Sidebar.vue";
 import CategoryNode from "@/Components/CategoryNode.vue";
-import { Head, useForm, router } from "@inertiajs/vue3";
+import { Head, useForm } from "@inertiajs/vue3";
 import { watch, ref } from "vue";
 
 defineProps({
@@ -14,11 +9,6 @@ defineProps({
         type: Array,
     },
 });
-
-const isSidebarOpen = ref(false);
-const toggleSidebar = () => {
-    isSidebarOpen.value = !isSidebarOpen.value;
-};
 
 const form = useForm({
     parent_id: null,
@@ -39,8 +29,8 @@ watch(
     () => form.parent_id,
     (newParentId) => {
         if (newParentId === null) {
-            childCategories.value = []; // Clear the child categories
-            form.child_id = null; // Clear selected subcategory if any
+            childCategories.value = [];
+            form.child_id = null;
         } else {
             fetchChildCategories(newParentId);
         }
@@ -85,41 +75,13 @@ fetchAllCategories();
     <Head title="Manage Categories" />
 
     <div class="flex min-h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <Sidebar :isOpen="isSidebarOpen" @toggle="toggleSidebar" />
-
         <!-- Main content -->
-        <div
-            class="flex flex-col w-full min-h-screen transition-all duration-300 lg:ml-64"
-            :class="{ 'lg:ml-64': isSidebarOpen }"
-        >
-            <!-- Mobile toggle -->
-            <button
-                class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md"
-                @click="toggleSidebar"
-            >
-                <svg
-                    class="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 6h16M4 12h16M4 18h16"
-                    />
-                </svg>
-            </button>
-
+        <div class="flex flex-col w-full min-h-screen">
             <!-- Authenticated layout -->
             <AuthenticatedLayout>
                 <main class="flex-1 py-6 px-6 sm:px-8 lg:px-10">
                     <div class="max-w-7xl mx-auto">
-                        <div
-                            class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
-                        >
+                        <div class="bg-white rounded-lg shadow-sm">
                             <div class="p-6 text-gray-900">
                                 <h2 class="text-2xl font-bold mb-6">
                                     Create Category
@@ -127,14 +89,18 @@ fetchAllCategories();
                                 <form @submit.prevent="submit">
                                     <!-- New Categories -->
                                     <div class="mb-4">
-                                        <InputLabel
+                                        <label
                                             for="newCategories"
-                                            value="New Categories"
-                                        />
-                                        <InputError
-                                            class="mt-1"
-                                            :message="form.errors.newCategories"
-                                        />
+                                            class="block text-sm font-medium text-gray-700"
+                                        >
+                                            New Categories
+                                        </label>
+                                        <p
+                                            v-if="form.errors.newCategories"
+                                            class="mt-1 text-sm text-red-600"
+                                        >
+                                            {{ form.errors.newCategories }}
+                                        </p>
                                         <div
                                             v-for="(
                                                 category, index
@@ -143,10 +109,10 @@ fetchAllCategories();
                                             class="mt-2"
                                         >
                                             <div class="flex items-center">
-                                                <TextInput
+                                                <input
                                                     v-model="category.name"
                                                     type="text"
-                                                    class="block w-full"
+                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     :placeholder="`Enter category #${
                                                         index + 1
                                                     }`"
@@ -161,22 +127,34 @@ fetchAllCategories();
                                                     Remove
                                                 </button>
                                             </div>
-                                            <InputError
-                                                class="mt-1"
-                                                :message="
+                                            <p
+                                                v-if="
                                                     form.errors[
                                                         `newCategories.${index}.name`
                                                     ]
                                                 "
-                                            />
-                                            <InputError
-                                                class="mt-1"
-                                                :message="
+                                                class="mt-1 text-sm text-red-600"
+                                            >
+                                                {{
+                                                    form.errors[
+                                                        `newCategories.${index}.name`
+                                                    ]
+                                                }}
+                                            </p>
+                                            <p
+                                                v-if="
                                                     form.errors[
                                                         `newCategories.required`
                                                     ]
                                                 "
-                                            />
+                                                class="mt-1 text-sm text-red-600"
+                                            >
+                                                {{
+                                                    form.errors[
+                                                        `newCategories.required`
+                                                    ]
+                                                }}
+                                            </p>
                                         </div>
                                         <button
                                             type="button"
@@ -189,10 +167,12 @@ fetchAllCategories();
 
                                     <!-- Top Category -->
                                     <div class="mb-4">
-                                        <InputLabel
+                                        <label
                                             for="parent_id"
-                                            value="Top Category (Optional)"
-                                        />
+                                            class="block text-sm font-medium text-gray-700"
+                                        >
+                                            Top Category (Optional)
+                                        </label>
                                         <select
                                             v-model="form.parent_id"
                                             id="parent_id"
@@ -209,10 +189,12 @@ fetchAllCategories();
                                                 {{ category.name }}
                                             </option>
                                         </select>
-                                        <InputError
-                                            class="mt-2"
-                                            :message="form.errors.parent_id"
-                                        />
+                                        <p
+                                            v-if="form.errors.parent_id"
+                                            class="mt-2 text-sm text-red-600"
+                                        >
+                                            {{ form.errors.parent_id }}
+                                        </p>
                                     </div>
 
                                     <!-- Sub Categories -->
@@ -220,10 +202,12 @@ fetchAllCategories();
                                         v-if="childCategories.length > 0"
                                         class="mb-4"
                                     >
-                                        <InputLabel
+                                        <label
                                             for="child_id"
-                                            value="Sub Category (Optional)"
-                                        />
+                                            class="block text-sm font-medium text-gray-700"
+                                        >
+                                            Sub Category (Optional)
+                                        </label>
                                         <select
                                             id="child_id"
                                             v-model="form.child_id"
@@ -240,20 +224,23 @@ fetchAllCategories();
                                                 {{ child.name }}
                                             </option>
                                         </select>
-                                        <InputError
-                                            class="mt-2"
-                                            :message="form.errors.child_id"
-                                        />
+                                        <p
+                                            v-if="form.errors.child_id"
+                                            class="mt-2 text-sm text-red-600"
+                                        >
+                                            {{ form.errors.child_id }}
+                                        </p>
                                     </div>
 
                                     <!-- Submit Button -->
                                     <div>
-                                        <PrimaryButton
+                                        <button
                                             type="submit"
                                             :disabled="form.processing"
+                                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
                                         >
                                             Create
-                                        </PrimaryButton>
+                                        </button>
                                         <Transition
                                             enter-active-class="transition ease-in-out"
                                             enter-from-class="opacity-0"
@@ -273,9 +260,7 @@ fetchAllCategories();
                         </div>
                     </div>
                     <div class="max-w-7xl mx-auto mt-6">
-                        <div
-                            class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
-                        >
+                        <div class="bg-white rounded-lg shadow-sm">
                             <div class="p-6 text-gray-900">
                                 <h2 class="text-2xl font-bold mb-6">
                                     Edit or Delete Category

@@ -2,7 +2,8 @@ import { defineStore } from "pinia";
 import { ref, reactive } from "vue";
 import axios from "axios";
 
-export const useSidebarStore = defineStore("sidebar", () => {
+export const useStore = defineStore("sidebar", () => {
+    const search = ref("");
     const parent_id = ref(null);
     const child_id = ref(null);
     const grandchild_id = ref(null);
@@ -32,6 +33,10 @@ export const useSidebarStore = defineStore("sidebar", () => {
         grandchildCategories.splice(0, grandchildCategories.length);
     }
 
+    function setSearch(searchTerm) {
+        search.value = searchTerm;
+    }
+
     return {
         parent_id,
         child_id,
@@ -40,5 +45,6 @@ export const useSidebarStore = defineStore("sidebar", () => {
         grandchildCategories,
         fetchSubcategories,
         clearSelections,
+        setSearch,
     };
 });
