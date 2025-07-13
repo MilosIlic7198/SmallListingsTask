@@ -6,14 +6,15 @@ import { ref } from "vue";
 
 defineProps({
     listings: {
+        type: Object,
+    },
+    categories: {
         type: Array,
     },
 });
 
 const { props } = usePage();
 const { errors, auth, listings } = props;
-
-console.log(listings);
 
 function handleImageError() {
     document.getElementById("image-container")?.classList.add("!hidden");
@@ -32,7 +33,11 @@ function toggleSidebar() {
 
     <div class="flex min-h-screen bg-gray-100">
         <!-- Sidebar -->
-        <Sidebar :isOpen="isSidebarOpen" @toggle="toggleSidebar" />
+        <Sidebar
+            :isOpen="isSidebarOpen"
+            @toggle="toggleSidebar"
+            :categories="categories"
+        />
 
         <!-- Main Content -->
         <div
@@ -108,7 +113,7 @@ function toggleSidebar() {
                 >
                     <!-- Example Card -->
                     <a
-                        v-for="(listing, index) in listings"
+                        v-for="(listing, index) in listings.data"
                         :key="index"
                         href="/login"
                         id="listing-card"
@@ -145,6 +150,31 @@ function toggleSidebar() {
                             </p>
                         </div>
                     </a>
+                </div>
+                <div
+                    v-if="listings.links.length > 3"
+                    class="mt-8 flex flex-wrap justify-center gap-2"
+                >
+                    <template
+                        v-for="(link, index) in listings.links"
+                        :key="index"
+                    >
+                        <Link
+                            v-if="link.url"
+                            :href="link.url"
+                            v-html="link.label"
+                            class="px-4 py-2 rounded-md border text-sm transition"
+                            :class="{
+                                'bg-red-600 text-white': link.active,
+                                'text-gray-700 hover:bg-gray-200': !link.active,
+                            }"
+                        />
+                        <span
+                            v-else
+                            v-html="link.label"
+                            class="px-4 py-2 rounded-md border text-sm text-gray-400"
+                        />
+                    </template>
                 </div>
             </main>
 

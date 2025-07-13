@@ -15,13 +15,20 @@ class ListingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        $listings = Listing::with(['user', 'category'])->get();
+        $query = Listing::query();
+
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $listings = $query->paginate(8)->appends($request->only('category_id'));
+        $categories = Category::whereNull('parent_id')->get();
 
         return Inertia::render('Welcome', [
             'listings' => $listings,
+            'categories' => Category::whereNull('parent_id')->get()
         ]);
     }
     

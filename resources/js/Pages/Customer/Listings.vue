@@ -71,7 +71,6 @@ function submit() {
     form.category_id = form.grandchild_id || form.child_id || form.parent_id;
 
     form.post(route("customer.store"), {
-        forceFormData: true,
         onSuccess: () => {
             imageInputRef.value.value = null;
             form.reset();
