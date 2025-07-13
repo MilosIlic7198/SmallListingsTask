@@ -15,6 +15,24 @@ class CategoryController extends Controller
      */
     public function index()
     {
+        
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return Inertia::render('Admin/Categories', [
+            'categories' => Category::whereNull('parent_id')->get()
+        ]);
+    }
+
+    /**
+     * Endpoint to fetch all categories.
+     */
+    public function all(Category $category)
+    {
         $categories = Category::whereNull('parent_id')
             ->with('children.children') //Eager load sub categories and sub sub categories.
             ->get();
@@ -24,20 +42,10 @@ class CategoryController extends Controller
     /**
      * Endpoint to fetch categories for form dropdowns.
      */
-    public function topcategories(Category $category)
-    {
-        return Inertia::render('Admin/Categories', [
-            'categories' => Category::whereNull('parent_id')->get()
-        ]);
-    }
-
-    /**
-     * Endpoint to fetch categories for form dropdowns.
-     */
     public function subcategories(Category $category)
     {
         $subcategories = $category->children()->get();
-        return $subcategories;
+        return response()->json($subcategories);
     }
 
     /**
@@ -61,7 +69,7 @@ class CategoryController extends Controller
             }
         });
 
-        return redirect()->route('admin.categories')->with('flash', [
+        return redirect()->route('admin.categories.create')->with('flash', [
             'type' => 'success',
             'message' => 'Category created successfully.',
         ]);
@@ -72,9 +80,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        return Inertia::render('Admin/Categories', [
-            'categories' => Category::whereNull('parent_id')->get()
-        ]);
+        
     }
 
     /**
@@ -97,7 +103,7 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return redirect()->route('admin.categories')->with('flash', [
+        return redirect()->route('admin.categories.create')->with('flash', [
             'type' => 'success',
             'message' => 'Category updated successfully.',
         ]);
@@ -118,7 +124,7 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('admin.categories')->with('flash', [
+        return redirect()->route('admin.categories.create')->with('flash', [
             'type' => 'success',
             'message' => 'Category deleted successfully.',
         ]);

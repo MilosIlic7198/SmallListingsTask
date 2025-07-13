@@ -6,45 +6,76 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', [ListingController::class, 'index'])->name('home');
-//Public category route for displaying listings by category.
-Route::get('/category/{category}', [CategoryController::class, 'show'])->name('category.show');
+
+// Public API-style routes for categories and nested subcategories
+Route::prefix('categories')->name('categories.')->group(function () {
+    Route::get('/all', [CategoryController::class, 'all'])->name('all'); // all categories, returns JSON
+    Route::get('/{category}/subcategories', [CategoryController::class, 'subcategories'])->name('subcategories'); // subcategories of a category
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth'])->group(function () {
-    //Profile routes group.
+
+    // Profile routes
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     });
 
-    //Customer and admin dashboard route.
+    // General dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 });
 
-Route::middleware(['auth', 'role:customer'])->group(function () {
-    Route::get('/my-listings', function () {
-        return Inertia::render('Customer/Listings');
-    })->name('customer.listings');
+/*
+|--------------------------------------------------------------------------
+| Customer Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/listings', [ListingController::class, 'create'])->name('create');
+    Route::post('/listings', [ListingController::class, 'store'])->name('store');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+
     Route::get('/customers', function () {
         return Inertia::render('Admin/Customers');
-    })->name('admin.customers');
-    //Categories.
-    Route::get('/categories', [CategoryController::class, 'topcategories'])->name('admin.categories');
-    Route::get('/categories/all', [CategoryController::class, 'index'])->name('admin.categories.index');
-    Route::get('/categories/{category}/subcategories', [CategoryController::class, 'subcategories'])->name('admin.categories.subcategories');
-    Route::post('/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
-    Route::patch('/categories/{category}', [CategoryController::class, 'update'])->name('admin.categories.update');
-    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
-    //
+    })->name('customers');
+
+    // Admin-only category management
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/', [CategoryController::class, 'create'])->name('create'); // view in admin
+        Route::post('/', [CategoryController::class, 'store'])->name('store');
+        Route::patch('/{category}', [CategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Admin listing view
     Route::get('/listings', function () {
         return Inertia::render('Admin/Listings');
-    })->name('admin.listings');
+    })->name('listings');
 });
 
 require __DIR__.'/auth.php';

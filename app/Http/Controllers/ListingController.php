@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreListingRequest;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,6 +24,15 @@ class ListingController extends Controller
             'listings' => $listings,
         ]);
     }
+    
+    public function customerListings()
+    {
+        $listings = Listing::with('category')
+        ->where('user_id', Auth::id())
+        ->get();
+
+        return Inertia::render('Customer/Listings', ['listings' => $listings]);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -28,15 +40,44 @@ class ListingController extends Controller
     public function create()
     {
         //
+        return Inertia::render('Customer/Listings', ['categories' => Category::whereNull('parent_id')->get()]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreListingRequest $request)
     {
-        //
+        // Get validated data
+        $validated = $request->validated();
+
+        // Assign the currently authenticated user
+        $validated['user_id'] = Auth::id();
+
+        // Create the listing first
+        $listing = Listing::create($validated);
+        // Handle image upload if exists
+        if ($request->hasFile('image')) {
+            $timestamp = now()->format('YmdHis');
+            $extension = $request->file('image')->getClientOriginalExtension();
+            $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
+
+            $validated['image_path'] = $request->file('image')->storeAs(
+                'images',
+                $filename,
+                'public'
+            );
+            
+            // Update the listing with the image path
+            $listing->update(['image_path' => $validated['image_path']]);
+        }
+
+        return redirect()->route('customer.create')->with('flash', [
+            'type' => 'success',
+            'message' => 'Listing created successfully.',
+        ]);
     }
+
 
     /**
      * Display the specified resource.

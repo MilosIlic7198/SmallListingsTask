@@ -4,8 +4,16 @@ import Sidebar from "@/Components/Sidebar.vue";
 import { usePage, Head, Link } from "@inertiajs/vue3";
 import { ref } from "vue";
 
+defineProps({
+    listings: {
+        type: Array,
+    },
+});
+
 const { props } = usePage();
-const { errors, auth } = props;
+const { errors, auth, listings } = props;
+
+console.log(listings);
 
 function handleImageError() {
     document.getElementById("image-container")?.classList.add("!hidden");
@@ -100,8 +108,8 @@ function toggleSidebar() {
                 >
                     <!-- Example Card -->
                     <a
-                        v-for="i in 5"
-                        :key="i"
+                        v-for="(listing, index) in listings"
+                        :key="index"
                         href="/login"
                         id="listing-card"
                         class="flex flex-col items-start gap-4 overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition duration-300 hover:text-black/70 hover:ring-gray-300 focus:outline-none focus-visible:ring-[#FF2D20]"
@@ -111,8 +119,12 @@ function toggleSidebar() {
                             class="relative w-full aspect-video"
                         >
                             <img
-                                src="/images/bicikla.jpg"
-                                alt="MTB 29"
+                                :src="
+                                    listing.image_path
+                                        ? `/storage/${listing.image_path}`
+                                        : '/images/noimage.jpg'
+                                "
+                                alt="Listing Image"
                                 class="w-full h-full rounded-md object-cover object-top"
                                 @error="handleImageError"
                             />
@@ -123,14 +135,13 @@ function toggleSidebar() {
                             class="flex flex-col w-full"
                         >
                             <h2 class="text-lg font-semibold text-black">
-                                MTB 29
+                                {{ listing.title }}
                             </h2>
                             <p class="mt-2 text-sm text-gray-600">
-                                Dobro očuvan bicikl, korišćen svega nekoliko
-                                puta. Idealno za gradske vožnje...
+                                {{ listing.description }}
                             </p>
                             <p class="mt-3 text-base font-semibold text-black">
-                                12.000 RSD
+                                {{ listing.price }}
                             </p>
                         </div>
                     </a>

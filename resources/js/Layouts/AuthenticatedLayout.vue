@@ -37,9 +37,11 @@ const showingNavigationDropdown = ref(false);
                                     Customers
                                 </NavLink>
                                 <NavLink
-                                    :href="route('admin.categories')"
+                                    :href="route('admin.categories.create')"
                                     :active="
-                                        route().current('admin.categories')
+                                        route().current(
+                                            'admin.categories.create'
+                                        )
                                     "
                                 >
                                     Categories
@@ -62,10 +64,8 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    :href="route('customer.listings')"
-                                    :active="
-                                        route().current('customer.listings')
-                                    "
+                                    :href="route('customer.create')"
+                                    :active="route().current('customer.create')"
                                 >
                                     Listings
                                 </NavLink>
