@@ -29,13 +29,26 @@ function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
 }
 
-function searchListings() {
+function applySearchFilter() {
     // Update the search term in the store
     store.setSearch(store.search);
     router.get(route("home"), {
         category_id:
             store.grandchild_id || store.child_id || store.parent_id || null,
         search: store.search,
+    });
+}
+
+function clearFilter() {
+    store.clearSearch();
+    store.search = "";
+    router.get(route("home"), {
+        onSuccess: () => {
+            console.log("Filter cleared");
+        },
+        onError: (errors) => {
+            console.error("Error clearing filter:", errors);
+        },
     });
 }
 </script>
@@ -128,7 +141,7 @@ function searchListings() {
                         class="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-center"
                     >
                         <form
-                            @submit.prevent="searchListings"
+                            @submit.prevent="applySearchFilter"
                             class="flex flex-col sm:flex-row gap-2 items-center w-full max-w-lg"
                         >
                             <input
@@ -142,6 +155,13 @@ function searchListings() {
                                 class="bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
                             >
                                 Search
+                            </button>
+                            <button
+                                type="button"
+                                @click="clearFilter"
+                                class="bg-gray-600 text-white rounded-md py-2 px-4 text-sm hover:bg-gray-700 transition"
+                            >
+                                Clear
                             </button>
                         </form>
                     </div>

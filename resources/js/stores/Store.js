@@ -37,6 +37,10 @@ export const useStore = defineStore("sidebar", () => {
         search.value = searchTerm;
     }
 
+    function clearSearch(searchTerm) {
+        search.value = null;
+    }
+
     return {
         parent_id,
         child_id,
@@ -46,5 +50,6 @@ export const useStore = defineStore("sidebar", () => {
         fetchSubcategories,
         clearSelections,
         setSearch,
+        clearSearch,
     };
 });

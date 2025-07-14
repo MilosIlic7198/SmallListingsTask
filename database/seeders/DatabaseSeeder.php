@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Category;
+use App\Models\Listing;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,21 +15,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
-            'role' => 'admin'
-        ]);
-
-        User::factory()->create([
-            'name' => 'customer',
-            'email' => 'customer@gmail.com',
-        ]);
         
-        User::factory()->create([
-            'name' => 'customer2',
-            'email' => 'customer2@gmail.com',
-        ]);
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        Listing::truncate();
+        Category::truncate();
+        User::truncate();
+
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $this->call(UserSeeder::class);
+        $this->call(CategorySeeder::class);
+        $this->call(ListingSeeder::class);
     }
 }

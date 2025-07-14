@@ -26,6 +26,7 @@ const form = useForm({
 const imageInputRef = ref(null);
 const childCategories = ref([]);
 const grandchildCategories = ref([]);
+const frontendErrors = ref({});
 
 // Fetch subcategories from parent_id selection.
 const fetchSubcategories = async (parentId, targetRef) => {
@@ -64,6 +65,11 @@ watch(
 function submit() {
     form.category_id = form.grandchild_id || form.child_id || form.parent_id;
 
+    if (!validateForm()) {
+        console.log("Form front validation failed", frontendErrors.value);
+        return;
+    }
+
     form.post(route("customer.store"), {
         onSuccess: () => {
             imageInputRef.value.value = null;
@@ -77,6 +83,71 @@ function submit() {
 
 function handleImageChange(event) {
     form.image = event.target.files[0];
+}
+
+function validateForm() {
+    frontendErrors.value = {}; // Reset errors
+
+    if (
+        !form.title ||
+        typeof form.title !== "string" ||
+        form.title.length > 250
+    ) {
+        frontendErrors.value.title =
+            "The title is required and must be less than 250 characters.";
+    }
+
+    if (
+        !form.description ||
+        typeof form.description !== "string" ||
+        form.description.length > 500
+    ) {
+        frontendErrors.value.description =
+            "The description is required and must be less than 500 characters.";
+    }
+
+    const priceRegex = /^\d{1,8}(\.\d{1,2})?$/;
+    if (
+        !form.price ||
+        isNaN(form.price) ||
+        form.price < 0 ||
+        form.price > 99999999.99 ||
+        !priceRegex.test(form.price)
+    ) {
+        frontendErrors.value.price =
+            "The price must be a valid number with up to 8 digits and 2 decimal places.";
+    }
+
+    if (!["new", "used"].includes(form.condition)) {
+        frontendErrors.value.condition =
+            'The condition must be either "new" or "used".';
+    }
+
+    if (form.phone && !/^(\+\d{1,3}[- ]?)?\d{10}$/.test(form.phone)) {
+        frontendErrors.value.phone =
+            "The phone number must be a valid 10-digit number, optionally starting with a country code.";
+    }
+
+    if (!form.phone) {
+        frontendErrors.value.phone = "The phone number is required.";
+    }
+
+    if (!form.location || form.location.length > 100) {
+        frontendErrors.value.location =
+            "The location is required and must be less than 100 characters.";
+    }
+
+    const categoryId = form.grandchild_id || form.child_id || form.parent_id;
+    if (!categoryId) {
+        frontendErrors.value.category_id = "Please select a valid category.";
+    }
+
+    // Validate image size if image is selected
+    if (form.image && form.image.size > 2048 * 1024) {
+        frontendErrors.value.image = "The image may not be larger than 2MB.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
 }
 </script>
 
@@ -119,10 +190,16 @@ function handleImageChange(event) {
                                             }"
                                         />
                                         <p
-                                            v-if="form.errors.title"
+                                            v-if="
+                                                form.errors.title ||
+                                                frontendErrors.title
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.title }}
+                                            {{
+                                                form.errors.title ||
+                                                frontendErrors.title
+                                            }}
                                         </p>
                                     </div>
 
@@ -143,10 +220,16 @@ function handleImageChange(event) {
                                             }"
                                         ></textarea>
                                         <p
-                                            v-if="form.errors.description"
+                                            v-if="
+                                                form.errors.description ||
+                                                frontendErrors.description
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.description }}
+                                            {{
+                                                form.errors.description ||
+                                                frontendErrors.description
+                                            }}
                                         </p>
                                     </div>
 
@@ -168,10 +251,16 @@ function handleImageChange(event) {
                                             }"
                                         />
                                         <p
-                                            v-if="form.errors.price"
+                                            v-if="
+                                                form.errors.price ||
+                                                frontendErrors.price
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.price }}
+                                            {{
+                                                form.errors.price ||
+                                                frontendErrors.price
+                                            }}
                                         </p>
                                     </div>
 
@@ -194,10 +283,16 @@ function handleImageChange(event) {
                                             <option value="used">Used</option>
                                         </select>
                                         <p
-                                            v-if="form.errors.condition"
+                                            v-if="
+                                                form.errors.condition ||
+                                                frontendErrors.condition
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.condition }}
+                                            {{
+                                                form.errors.condition ||
+                                                frontendErrors.condition
+                                            }}
                                         </p>
                                     </div>
                                     <!-- Parent Category -->
@@ -227,13 +322,19 @@ function handleImageChange(event) {
                                                 {{ category.name }}
                                             </option>
                                         </select>
-                                        <p
-                                            v-if="form.errors.parent_id"
-                                            class="mt-1 text-sm text-red-600"
-                                        >
-                                            {{ form.errors.parent_id }}
-                                        </p>
                                     </div>
+                                    <p
+                                        v-if="
+                                            form.errors.category_id ||
+                                            frontendErrors.category_id
+                                        "
+                                        class="mt-1 text-sm text-red-600"
+                                    >
+                                        {{
+                                            form.errors.category_id ||
+                                            frontendErrors.category_id
+                                        }}
+                                    </p>
 
                                     <!-- Child Category -->
                                     <div v-if="childCategories.length > 0">
@@ -263,14 +364,7 @@ function handleImageChange(event) {
                                                 {{ child.name }}
                                             </option>
                                         </select>
-                                        <p
-                                            v-if="form.errors.child_id"
-                                            class="mt-1 text-sm text-red-600"
-                                        >
-                                            {{ form.errors.child_id }}
-                                        </p>
                                     </div>
-
                                     <!-- Grandchild Category -->
                                     <div v-if="grandchildCategories.length > 0">
                                         <label
@@ -299,14 +393,7 @@ function handleImageChange(event) {
                                                 {{ grandchild.name }}
                                             </option>
                                         </select>
-                                        <p
-                                            v-if="form.errors.grandchild_id"
-                                            class="mt-1 text-sm text-red-600"
-                                        >
-                                            {{ form.errors.grandchild_id }}
-                                        </p>
                                     </div>
-
                                     <div>
                                         <label
                                             for="phone"
@@ -324,10 +411,16 @@ function handleImageChange(event) {
                                             }"
                                         />
                                         <p
-                                            v-if="form.errors.phone"
+                                            v-if="
+                                                form.errors.phone ||
+                                                frontendErrors.phone
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.phone }}
+                                            {{
+                                                form.errors.phone ||
+                                                frontendErrors.phone
+                                            }}
                                         </p>
                                     </div>
 
@@ -348,10 +441,16 @@ function handleImageChange(event) {
                                             }"
                                         />
                                         <p
-                                            v-if="form.errors.location"
+                                            v-if="
+                                                form.errors.location ||
+                                                frontendErrors.location
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.location }}
+                                            {{
+                                                form.errors.location ||
+                                                frontendErrors.location
+                                            }}
                                         </p>
                                     </div>
 
@@ -370,10 +469,16 @@ function handleImageChange(event) {
                                             @change="handleImageChange"
                                         />
                                         <p
-                                            v-if="form.errors.image"
+                                            v-if="
+                                                form.errors.image ||
+                                                frontendErrors.image
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.image }}
+                                            {{
+                                                form.errors.image ||
+                                                frontendErrors.image
+                                            }}
                                         </p>
                                     </div>
 
