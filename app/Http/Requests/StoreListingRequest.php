@@ -53,7 +53,7 @@ class StoreListingRequest extends FormRequest
             'condition.in' => 'The condition must be either "new" or "used".',
 
             'image.image' => 'The uploaded file must be an image.',
-            'image.max' => 'The image may not be larger than 4MB.',
+            'image.max' => 'The image may not be larger than 2MB.',
 
             'phone.required' => 'The phone number is required.',
             'phone.string' => 'The phone number must be a valid string.',

@@ -49,11 +49,14 @@ class ListingController extends Controller
         ]);
     }
     
+    /**
+     * Display a listing of the resource.
+     */
     public function customerListings()
     {
         $listings = Listing::with('category')
         ->where('user_id', Auth::id())
-        ->get();
+        ->paginate(4);
 
         return Inertia::render('Customer/Listings', ['listings' => $listings]);
     }
@@ -64,7 +67,7 @@ class ListingController extends Controller
     public function create()
     {
         //
-        return Inertia::render('Customer/Listings', ['categories' => Category::whereNull('parent_id')->get()]);
+        return Inertia::render('Customer/Listing/Create', ['categories' => Category::whereNull('parent_id')->get()]);
     }
 
     /**
@@ -108,30 +111,107 @@ class ListingController extends Controller
      */
     public function show(Listing $listing)
     {
-        //
+        return Inertia::render('Listing', [
+            'listing' => $listing->load('category', 'user'),
+            'categories' => Category::whereNull('parent_id')->get()
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
+    * Show the form for editing the specified resource.
+    */
     public function edit(Listing $listing)
     {
-        //
+        // Load the listing with its category
+        $listing->load('category', 'user');
+
+        $categories = Category::whereNull('parent_id')->get();
+        
+        $pathIds = $listing->category?->getCategoryPathIds() ?? [];
+
+
+         $parentId = $pathIds[0] ?? null;
+         $childId = $pathIds[1] ?? null;
+         $grandchildId = $pathIds[2] ?? null;
+
+         return Inertia::render('Customer/Listing/Edit', [
+            'listing' => $listing,
+            'categories' => $categories,
+            'selectedCategories' => [
+                'parent_id' => $parentId,
+                'child_id' => $childId,
+                'grandchild_id' => $grandchildId,
+            ],
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Listing $listing)
+    * Update the specified resource in storage.
+    */
+    public function update(StoreListingRequest $request, Listing $listing)
     {
-        //
-    }
+        // Ensure the authenticated user owns the listing
+        if ($listing->user_id !== Auth::id()) {
+            return redirect()->route('customer.listings')->with('flash', [
+                'type' => 'error',
+                'message' => 'You are not authorized to update this listing.',
+            ]);
+        }
+        
+        // Get validated data
+        $validated = $request->validated();
+        
+        // Handle image upload if exists
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($listing->image_path) {
+                \Storage::disk('public')->delete($listing->image_path);
+            }
+            
+            $timestamp = now()->format('YmdHis');
+            $extension = $request->file('image')->getClientOriginalExtension();
+            $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
 
+            $validated['image_path'] = $request->file('image')->storeAs(
+                'images',
+                $filename,
+                'public'
+            );
+        }
+
+        // Update the listing
+        $listing->update($validated);
+        
+        return redirect()->route('customer.listings')->with('flash', [
+            'type' => 'success',
+            'message' => 'Listing updated successfully.',
+        ]);
+    }
+    
     /**
-     * Remove the specified resource from storage.
-     */
+    * Remove the specified resource from storage.
+    */
     public function destroy(Listing $listing)
     {
-        //
+        // Ensure the authenticated user owns the listing
+        if ($listing->user_id !== Auth::id()) {
+            return redirect()->route('customer.listings')->with('flash', [
+                'type' => 'error',
+                'message' => 'You are not authorized to delete this listing.',
+            ]);
+        }
+        
+        // Delete image if exists
+        if ($listing->image_path) {
+            \Storage::disk('public')->delete($listing->image_path);
+        }
+        
+        // Delete the listing
+        $listing->delete();
+
+        return redirect()->route('customer.listings')->with('flash', [
+            'type' => 'success',
+            'message' => 'Listing deleted successfully.',
+        ]);
     }
 }

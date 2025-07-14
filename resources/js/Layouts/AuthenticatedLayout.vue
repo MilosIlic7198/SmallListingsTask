@@ -16,7 +16,7 @@ const showingUserDropdown = ref(false);
             <nav class="border-b border-gray-100 bg-white">
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
-                        <Link :href="route('home')">
+                        <Link :href="route('index')">
                             <ApplicationLogo
                                 class="h-16 w-16 fill-current text-gray-800"
                             />
@@ -90,9 +90,9 @@ const showingUserDropdown = ref(false);
                                     Dashboard
                                 </a>
                                 <a
-                                    :href="route('customer.create')"
+                                    :href="route('customer.listings')"
                                     :class="[
-                                        route().current('customer.create')
+                                        route().current('customer.listings')
                                             ? 'border-indigo-500 text-gray-900'
                                             : 'text-gray-600 hover:text-gray-900 hover:border-indigo-500',
                                         'inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium',
@@ -255,9 +255,9 @@ const showingUserDropdown = ref(false);
                         </a>
                         <a
                             v-if="auth.role === 'customer'"
-                            :href="route('customer.create')"
+                            :href="route('customer.listings')"
                             :class="[
-                                route().current('customer.create')
+                                route().current('customer.listings')
                                     ? 'border-l-4 border-indigo-500 bg-indigo-50 text-indigo-700'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                                 'block pl-3 pr-4 py-2 text-base font-medium',

@@ -42,4 +42,22 @@ class Category extends Model
     {
         return $this->hasMany(Listing::class);
     }
+
+    /**
+    * Get the IDs of all parent categories up to the root, including self.
+    *
+    * @return array<int>
+    */
+    public function getCategoryPathIds(): array
+    {
+        $ids = [];
+
+        $category = $this;
+
+        while ($category) {
+            array_unshift($ids, $category->id); // Prepend to keep root-first order
+            $category = $category->parent;
+        }
+        return $ids;
+    }
 }

@@ -12,7 +12,8 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', [ListingController::class, 'index'])->name('home');
+Route::get('/', [ListingController::class, 'index'])->name('index');
+Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('show');
 
 // Public API-style routes for categories and nested subcategories
 Route::prefix('categories')->name('categories.')->group(function () {
@@ -48,8 +49,12 @@ Route::middleware(['auth'])->group(function () {
 */
 
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
-    Route::get('/listings', [ListingController::class, 'create'])->name('create');
-    Route::post('/listings', [ListingController::class, 'store'])->name('store');
+    Route::get('/listings', [ListingController::class, 'customerListings'])->name('listings');
+    Route::get('/listings/create', [ListingController::class, 'create'])->name('create');
+    Route::post('/listings/store', [ListingController::class, 'store'])->name('store');
+    Route::get('/listings/edit/{listing}', [ListingController::class, 'edit'])->name('edit');
+    Route::post('/listings/update/{listing}', [ListingController::class, 'update'])->name('update');
+    Route::delete('/listings/destroy/{listing}', [ListingController::class, 'destroy'])->name('destroy');
 });
 
 /*
@@ -59,12 +64,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-
+    // Admin customer view
     Route::get('/customers', function () {
         return Inertia::render('Admin/Customers');
     })->name('customers');
 
-    // Admin-only category management
+    // Admin category view
     Route::prefix('categories')->name('categories.')->group(function () {
         Route::get('/', [CategoryController::class, 'create'])->name('create'); // view in admin
         Route::post('/', [CategoryController::class, 'store'])->name('store');

@@ -18,7 +18,7 @@ class ListingSeeder extends Seeder
         $faker = Faker::create();
 
         foreach ($leafCategories as $category) {
-            $numberOfListings = rand(25, 50);
+            $numberOfListings = rand(10, 20);
 
             foreach (range(1, $numberOfListings) as $i) {
                 Listing::create([

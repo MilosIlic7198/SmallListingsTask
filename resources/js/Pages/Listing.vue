@@ -2,11 +2,11 @@
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Sidebar from "@/Components/Sidebar.vue";
 import { useStore } from "@/stores/Store";
-import { usePage, Head, Link, router } from "@inertiajs/vue3";
+import { usePage, Head, Link } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 defineProps({
-    listings: {
+    listing: {
         type: Object,
     },
     categories: {
@@ -15,46 +15,21 @@ defineProps({
 });
 
 const { props } = usePage();
-const { errors, auth, listings } = props;
+const { errors, auth, listing } = props;
 const store = useStore(); // Use the store
-
-function handleImageError() {
-    document.getElementById("image-container")?.classList.add("!hidden");
-    document.getElementById("listing-card")?.classList.add("!row-span-1");
-    document.getElementById("listing-card-content")?.classList.add("!flex-row");
-}
 
 const isSidebarOpen = ref(false);
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
 }
 
-function applySearchFilter() {
-    // Update the search term in the store
-    store.setSearch(store.search);
-    router.get(route("index"), {
-        category_id:
-            store.grandchild_id || store.child_id || store.parent_id || null,
-        search: store.search,
-    });
-}
-
-function clearFilter() {
-    store.clearSearch();
-    store.search = "";
-    router.get(route("index"), {
-        onSuccess: () => {
-            console.log("Filter cleared");
-        },
-        onError: (errors) => {
-            console.error("Error clearing filter:", errors);
-        },
-    });
+function handleImageError() {
+    document.getElementById("image-container")?.classList.add("!hidden");
 }
 </script>
 
 <template>
-    <Head title="Welcome to" />
+    <Head :title="listing.title" />
 
     <div class="flex min-h-screen bg-gray-100">
         <!-- Sidebar -->
@@ -135,55 +110,19 @@ function clearFilter() {
                             Dashboard
                         </Link>
                     </nav>
-
-                    <!-- Search Form -->
-                    <div
-                        class="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-center"
-                    >
-                        <form
-                            @submit.prevent="applySearchFilter"
-                            class="flex flex-col sm:flex-row gap-2 items-center w-full max-w-lg"
-                        >
-                            <input
-                                v-model="store.search"
-                                type="text"
-                                placeholder="Search listings..."
-                                class="flex-1 rounded-md border-gray-300 shadow-sm px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                            />
-                            <button
-                                type="submit"
-                                class="bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
-                            >
-                                Search
-                            </button>
-                            <button
-                                type="button"
-                                @click="clearFilter"
-                                class="bg-gray-600 text-white rounded-md py-2 px-4 text-sm hover:bg-gray-700 transition"
-                            >
-                                Clear
-                            </button>
-                        </form>
-                    </div>
                 </header>
             </div>
 
             <!-- Main Section -->
             <main class="mt-6 px-4 sm:px-6 lg:px-8">
                 <div
-                    class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    class="max-w-4xl mx-auto bg-white rounded-lg shadow-sm ring-1 ring-gray-200 p-6"
                 >
-                    <!-- Example Card -->
-                    <a
-                        v-for="(listing, index) in listings.data"
-                        :key="index"
-                        :href="route('show', listing.id)"
-                        id="listing-card"
-                        class="flex flex-col items-start gap-4 overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition duration-300 hover:text-black/70 hover:ring-gray-300 focus:outline-none focus-visible:ring-[#FF2D20]"
-                    >
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <!-- Image -->
                         <div
                             id="image-container"
-                            class="relative w-full aspect-video"
+                            class="relative w-full max-h-[400px] flex items-center justify-center"
                         >
                             <img
                                 :src="
@@ -192,51 +131,42 @@ function clearFilter() {
                                         : '/images/noimage.jpg'
                                 "
                                 alt="Listing Image"
-                                class="w-full h-full rounded-md object-cover object-top"
+                                class="w-full h-auto max-h-[400px] rounded-md object-contain"
                                 @error="handleImageError"
                             />
                         </div>
 
-                        <div
-                            id="listing-card-content"
-                            class="flex flex-col w-full"
-                        >
-                            <h2 class="text-lg font-semibold text-black">
+                        <!-- Listing Details -->
+                        <div class="flex flex-col gap-4">
+                            <h1 class="text-2xl font-bold text-black">
                                 {{ listing.title }}
-                            </h2>
-                            <p class="mt-2 text-sm text-gray-600">
+                            </h1>
+                            <p class="text-gray-600">
                                 {{ listing.description }}
                             </p>
-                            <p class="mt-3 text-base font-semibold text-black">
+                            <p class="text-lg font-semibold text-black">
                                 {{ listing.price }}
                             </p>
+                            <p v-if="listing.location" class="text-gray-600">
+                                Location: {{ listing.location }}
+                            </p>
+                            <p v-if="listing.phone" class="text-gray-600">
+                                Phone: {{ listing.phone }}
+                            </p>
+                            <p v-if="listing.category" class="text-gray-600">
+                                Category: {{ listing.category.name }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                Posted by: {{ listing.user?.name || "Unknown" }}
+                            </p>
+                            <Link
+                                :href="route('index')"
+                                class="mt-4 inline-block bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
+                            >
+                                Back to Listings
+                            </Link>
                         </div>
-                    </a>
-                </div>
-                <div
-                    v-if="listings.links.length > 3"
-                    class="mt-8 flex flex-wrap justify-center gap-2"
-                >
-                    <template
-                        v-for="(link, index) in listings.links"
-                        :key="index"
-                    >
-                        <Link
-                            v-if="link.url"
-                            :href="link.url"
-                            v-html="link.label"
-                            class="px-4 py-2 rounded-md border text-sm transition"
-                            :class="{
-                                'bg-red-600 text-white': link.active,
-                                'text-gray-700 hover:bg-gray-200': !link.active,
-                            }"
-                        />
-                        <span
-                            v-else
-                            v-html="link.label"
-                            class="px-4 py-2 rounded-md border text-sm text-gray-400"
-                        />
-                    </template>
+                    </div>
                 </div>
             </main>
 

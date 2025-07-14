@@ -1,6 +1,5 @@
 <script setup>
-import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import { Link, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 import { watch } from "vue";
 import { useStore } from "@/stores/Store";
 
@@ -47,7 +46,7 @@ function applyCategoryFilter() {
     form.category_id = store.grandchild_id || store.child_id || store.parent_id;
     form.search = store.search;
 
-    form.get(route("home"), {
+    form.get(route("index"), {
         data: {
             category_id: form.category_id,
         },
@@ -63,7 +62,7 @@ function applyCategoryFilter() {
 // Clear filter and reset selections
 function clearFilter() {
     store.clearSelections();
-    form.get(route("home"), {
+    form.get(route("index"), {
         onSuccess: () => {
             console.log("Filter cleared");
         },

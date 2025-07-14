@@ -8,109 +8,124 @@ use App\Models\Category;
 class CategorySeeder extends Seeder
 {
     public function run(): void
-    {
-        $categories = [
-            [
-                'name' => 'Electronics',
-                'children' => [
-                    [
-                        'name' => 'Computers',
-                        'children' => [
-                            [
-                                'name' => 'Laptops',
-                                'children' => [
-                                    ['name' => 'Gaming Laptops'],
-                                    ['name' => 'Business Laptops'],
-                                ],
-                            ],
-                            ['name' => 'Desktops'],
-                            ['name' => 'Components'],
-                        ],
+{
+    $categories = [
+        [
+            'name' => 'Electronics',
+            'children' => [
+                [
+                    'name' => 'Computers',
+                    'children' => [
+                        ['name' => 'Laptops'],
+                        ['name' => 'Desktops'],
+                        ['name' => 'Components'],
+                        ['name' => 'Gaming Laptops'],
+                        ['name' => 'Business Laptops'],
                     ],
-                    [
-                        'name' => 'Phones',
-                        'children' => [
-                            ['name' => 'Smartphones'],
-                            ['name' => 'Accessories'],
-                        ],
+                ],
+                [
+                    'name' => 'Phones',
+                    'children' => [
+                        ['name' => 'Smartphones'],
+                        ['name' => 'Accessories'],
                     ],
-                    [
-                        'name' => 'TV & Audio',
-                        'children' => [
-                            ['name' => 'Televisions'],
-                            ['name' => 'Soundbars'],
-                            ['name' => 'Headphones'],
-                        ],
+                ],
+                [
+                    'name' => 'TV & Audio',
+                    'children' => [
+                        ['name' => 'Televisions'],
+                        ['name' => 'Soundbars'],
+                        ['name' => 'Headphones'],
                     ],
                 ],
             ],
-            [
-                'name' => 'Vehicles',
-                'children' => [
-                    [
-                        'name' => 'Cars',
-                        'children' => [
-                            ['name' => 'Used Cars'],
-                            ['name' => 'New Cars'],
-                            ['name' => 'Car Parts'],
-                        ],
+        ],
+        [
+            'name' => 'Vehicles',
+            'children' => [
+                [
+                    'name' => 'Cars',
+                    'children' => [
+                        ['name' => 'Used Cars'],
+                        ['name' => 'New Cars'],
+                        ['name' => 'Car Parts'],
                     ],
-                    [
-                        'name' => 'Motorcycles',
-                        'children' => [
-                            ['name' => 'Scooters'],
-                            ['name' => 'Sport Bikes'],
-                        ],
+                ],
+                [
+                    'name' => 'Motorcycles',
+                    'children' => [
+                        ['name' => 'Scooters'],
+                        ['name' => 'Sport Bikes'],
                     ],
                 ],
             ],
-            [
-                'name' => 'Real Estate',
-                'children' => [
-                    [
-                        'name' => 'Residential',
-                        'children' => [
-                            ['name' => 'Apartments'],
-                            ['name' => 'Houses'],
-                            ['name' => 'Vacation Homes'],
-                        ],
+        ],
+        [
+            'name' => 'Real Estate',
+            'children' => [
+                [
+                    'name' => 'Residential',
+                    'children' => [
+                        ['name' => 'Apartments'],
+                        ['name' => 'Houses'],
+                        ['name' => 'Vacation Homes'],
                     ],
-                    [
-                        'name' => 'Commercial',
-                        'children' => [
-                            ['name' => 'Office Spaces'],
-                            ['name' => 'Warehouses'],
-                        ],
+                ],
+                [
+                    'name' => 'Commercial',
+                    'children' => [
+                        ['name' => 'Office Spaces'],
+                        ['name' => 'Warehouses'],
                     ],
-                    ['name' => 'Land'],
+                ],
+                [
+                    'name' => 'Land',
+                    'children' => [],
                 ],
             ],
-            [
-                'name' => 'Home & Furniture',
-                'children' => [
-                    ['name' => 'Living Room'],
-                    ['name' => 'Bedroom'],
-                    ['name' => 'Kitchen'],
+        ],
+        [
+            'name' => 'Home & Furniture',
+            'children' => [
+                [
+                    'name' => 'Living Room',
+                    'children' => [],
+                ],
+                [
+                    'name' => 'Bedroom',
+                    'children' => [],
+                ],
+                [
+                    'name' => 'Kitchen',
+                    'children' => [],
                 ],
             ],
-            [
-                'name' => 'Sports & Outdoors',
-                'children' => [
-                    [
-                        'name' => 'Cycling',
-                        'children' => [
-                            ['name' => 'Mountain Bikes'],
-                            ['name' => 'Road Bikes'],
-                        ],
+        ],
+        [
+            'name' => 'Sports & Outdoors',
+            'children' => [
+                [
+                    'name' => 'Cycling',
+                    'children' => [
+                        ['name' => 'Mountain Bikes'],
+                        ['name' => 'Road Bikes'],
                     ],
-                    ['name' => 'Fitness'],
-                    ['name' => 'Camping'],
+                ],
+                [
+                    'name' => 'Fitness',
+                    'children' => [],
+                ],
+                [
+                    'name' => 'Camping',
+                    'children' => [],
                 ],
             ],
-        ];
+        ],
+    ];
 
-        $this->createCategories($categories);
-    }
+    $this->createCategories($categories);
+}
+
 
     private function createCategories(array $categories, ?Category $parent = null): void
     {
