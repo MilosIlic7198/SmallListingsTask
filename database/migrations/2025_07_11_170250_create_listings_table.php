@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('image_path')->nullable();
             $table->string('phone', 50);
             $table->string('location');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

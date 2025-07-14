@@ -22,6 +22,18 @@ const deleteForm = useForm({});
 
 // Reactive property to hold errors for individual categories
 const categoryErrors = ref({});
+const frontendErrors = ref({});
+
+// Fetch all categories for unique name validation
+const allCategories = ref([]);
+const fetchAllCategories = async () => {
+    try {
+        const response = await axios.get("/categories/all");
+        allCategories.value = response.data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+    }
+};
 
 const startEditing = (category) => {
     isEditing.value = true;
@@ -32,17 +44,51 @@ const startEditing = (category) => {
 const cancelEditing = () => {
     isEditing.value = false;
     editForm.reset();
+    frontendErrors.value = {};
+};
+
+const validateForm = () => {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate name
+    if (!editForm.name || typeof editForm.name !== "string") {
+        frontendErrors.value.name = "The category name is required.";
+    } else if (editForm.name.length > 255) {
+        frontendErrors.value.name =
+            "The category name must be less than 255 characters.";
+    } else if (!/^[a-zA-Z\s-]+$/.test(editForm.name)) {
+        frontendErrors.value.name =
+            "The category name can only contain letters, spaces, and hyphens.";
+    } else {
+        // Check for duplicate names (excluding the current category)
+        const exists = allCategories.value.some(
+            (category) =>
+                category.id !== editForm.id &&
+                category.name.toLowerCase() === editForm.name.toLowerCase()
+        );
+        if (exists) {
+            frontendErrors.value.name = "This category name already exists.";
+        }
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
 };
 
 const submitEdit = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     editForm.patch(route("admin.categories.update", editForm.id), {
         onSuccess: () => {
             isEditing.value = false;
             editForm.reset();
+            frontendErrors.value = {};
             emit("updated");
         },
         onError: (errors) => {
-            console.error(errors);
+            console.error("Backend errors:", errors);
         },
     });
 };
@@ -51,7 +97,7 @@ const deleteCategory = (categoryId) => {
     deleteForm.delete(route("admin.categories.destroy", categoryId), {
         onSuccess: (response) => {
             const type = response.props.flash?.type;
-            if (type == "error") {
+            if (type === "error") {
                 categoryErrors.value[categoryId] =
                     response.props.flash?.message;
             } else {
@@ -60,7 +106,8 @@ const deleteCategory = (categoryId) => {
             }
         },
         onError: (errors) => {
-            console.error(errors);
+            categoryErrors.value[categoryId] = errors;
+            console.error("Delete error:", errors);
         },
     });
 };
@@ -94,14 +141,18 @@ const deleteCategory = (categoryId) => {
                             id="edit_name"
                             v-model="editForm.name"
                             type="text"
-                            class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            :class="{
+                                'border-red-500':
+                                    editForm.errors.name || frontendErrors.name,
+                            }"
                             placeholder="Enter category name"
                         />
                         <p
-                            v-if="editForm.errors.name"
+                            v-if="editForm.errors.name || frontendErrors.name"
                             class="mt-1 text-sm text-red-600"
                         >
-                            {{ editForm.errors.name }}
+                            {{ editForm.errors.name || frontendErrors.name }}
                         </p>
                     </div>
                     <button
@@ -159,7 +210,6 @@ const deleteCategory = (categoryId) => {
                 :key="child.id"
                 :category="child"
                 :depth="depth + 1"
-                @edit="startEditing"
                 @updated="emit('updated')"
             />
         </div>

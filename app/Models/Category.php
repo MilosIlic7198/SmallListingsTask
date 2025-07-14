@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -48,7 +49,7 @@ class Category extends Model
     *
     * @return array<int>
     */
-    public function getCategoryPathIds(): array
+    public function getCategoryHierarchy(): array
     {
         $ids = [];
 
@@ -59,5 +60,24 @@ class Category extends Model
             $category = $category->parent;
         }
         return $ids;
+    }
+
+    /**
+    * Recursively soft delete the category, its descendants, and associated listings.
+    */
+    public function deleteDescendantsAndListings()
+    {
+        // Soft delete child categories recursively
+        $this->children()->get()->each(function ($child) {
+            $child->deleteDescendantsAndListings();
+        });
+
+        // Soft delete associated listings
+        $this->listings()->get()->each(function ($listing) {
+            $listing->delete();
+        });
+
+        // Soft delete the current category
+        $this->delete();
     }
 }

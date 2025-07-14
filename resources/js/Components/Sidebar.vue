@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import { watch } from "vue";
 import { useStore } from "@/stores/Store";
 
@@ -13,13 +13,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["toggle"]);
 const store = useStore();
-
-const form = useForm({
-    category_id: null,
-    search: null,
-});
 
 // Watch parent_id to fetch child categories
 watch(
@@ -43,32 +37,18 @@ watch(
 
 // Handle category filter submission
 function applyCategoryFilter() {
-    form.category_id = store.grandchild_id || store.child_id || store.parent_id;
-    form.search = store.search;
-
-    form.get(route("index"), {
-        data: {
-            category_id: form.category_id,
-        },
-        onSuccess: () => {
-            console.log("Filter applied");
-        },
-        onError: (errors) => {
-            console.error("Error applying filter:", errors);
-        },
+    router.get(route("index"), {
+        category_id: store.category_id,
+        search: store.search,
     });
 }
 
 // Clear filter and reset selections
 function clearFilter() {
     store.clearSelections();
-    form.get(route("index"), {
-        onSuccess: () => {
-            console.log("Filter cleared");
-        },
-        onError: (errors) => {
-            console.error("Error clearing filter:", errors);
-        },
+    router.get(route("index"), {
+        category_id: null,
+        search: store.search,
     });
 }
 </script>
@@ -164,7 +144,6 @@ function clearFilter() {
                 <button
                     @click="applyCategoryFilter"
                     class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    :disabled="form.processing"
                 >
                     Apply Filter
                 </button>
@@ -173,7 +152,6 @@ function clearFilter() {
                 <button
                     @click="clearFilter"
                     class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                    :disabled="form.processing"
                 >
                     Clear Filter
                 </button>

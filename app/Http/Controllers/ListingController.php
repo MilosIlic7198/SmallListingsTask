@@ -17,7 +17,7 @@ class ListingController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Listing::query()->with('category'); // Eager load the category relationship
+        $query = Listing::query()->with('category')->whereNull('deleted_at'); // Eager load the category relationship
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -35,7 +35,7 @@ class ListingController extends Controller
                 });
 
                 if (is_numeric($search)) {
-                    $q->orWhere('price', '=', $search);
+                    $q->orWhere('price', 'like', "%{$search}%");
                 }
             });
         }
@@ -45,7 +45,7 @@ class ListingController extends Controller
 
         return Inertia::render('Welcome', [
             'listings' => $listings,
-            'categories' => Category::whereNull('parent_id')->get()
+            'categories' =>  $categories,
         ]);
     }
     
@@ -56,6 +56,7 @@ class ListingController extends Controller
     {
         $listings = Listing::with('category')
         ->where('user_id', Auth::id())
+        ->whereNull('deleted_at')
         ->paginate(4);
 
         return Inertia::render('Customer/Listings', ['listings' => $listings]);
@@ -67,7 +68,7 @@ class ListingController extends Controller
     public function create()
     {
         //
-        return Inertia::render('Customer/Listing/Create', ['categories' => Category::whereNull('parent_id')->get()]);
+        return Inertia::render('Customer/Listing/Create', ['categories' => Category::whereNull(['parent_id', 'deleted_at'])->get()]);
     }
 
     /**
@@ -89,11 +90,13 @@ class ListingController extends Controller
             $extension = $request->file('image')->getClientOriginalExtension();
             $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
 
-            $validated['image_path'] = $request->file('image')->storeAs(
+            $path = \Storage::disk('public')->putFileAs(
                 'images',
-                $filename,
-                'public'
+                $request->file('image'),
+                $filename
             );
+
+            $validated['image_path'] = $path;
             
             // Update the listing with the image path
             $listing->update(['image_path' => $validated['image_path']]);
@@ -113,7 +116,7 @@ class ListingController extends Controller
     {
         return Inertia::render('Listing', [
             'listing' => $listing->load('category', 'user'),
-            'categories' => Category::whereNull('parent_id')->get()
+            'categories' => Category::whereNull(['parent_id', 'deleted_at'])->get()
         ]);
     }
 
@@ -125,9 +128,9 @@ class ListingController extends Controller
         // Load the listing with its category
         $listing->load('category', 'user');
 
-        $categories = Category::whereNull('parent_id')->get();
+        $categories = Category::whereNull(['parent_id', 'deleted_at'])->get();
         
-        $pathIds = $listing->category?->getCategoryPathIds() ?? [];
+        $pathIds = $listing->category?->getCategoryHierarchy() ?? [];
 
 
          $parentId = $pathIds[0] ?? null;
@@ -172,11 +175,13 @@ class ListingController extends Controller
             $extension = $request->file('image')->getClientOriginalExtension();
             $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
 
-            $validated['image_path'] = $request->file('image')->storeAs(
+            $path = \Storage::disk('public')->putFileAs(
                 'images',
-                $filename,
-                'public'
+                $request->file('image'),
+                $filename
             );
+
+            $validated['image_path'] = $path;
         }
 
         // Update the listing
@@ -206,7 +211,7 @@ class ListingController extends Controller
             \Storage::disk('public')->delete($listing->image_path);
         }
         
-        // Delete the listing
+        // Soft delete 
         $listing->delete();
 
         return redirect()->route('customer.listings')->with('flash', [

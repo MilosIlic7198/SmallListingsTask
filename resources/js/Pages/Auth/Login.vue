@@ -1,6 +1,7 @@
 <script setup>
 import GuestLayout from "@/Layouts/GuestLayout.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
+import { ref } from "vue";
 
 defineOptions({ layout: null });
 
@@ -15,9 +16,37 @@ const form = useForm({
     password: "",
 });
 
+const frontendErrors = ref({});
+
+const validateForm = () => {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate email
+    if (!form.email || typeof form.email !== "string") {
+        frontendErrors.value.email = "The email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        frontendErrors.value.email = "Please enter a valid email address.";
+    }
+
+    // Validate password
+    if (!form.password || typeof form.password !== "string") {
+        frontendErrors.value.password = "The password is required.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
+};
+
 const submit = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     form.post(route("login"), {
-        onFinish: () => form.reset("password"),
+        onFinish: () => {
+            form.reset("password");
+            frontendErrors.value = {};
+        },
     });
 };
 </script>
@@ -42,13 +71,20 @@ const submit = () => {
                     id="email"
                     type="email"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.email || frontendErrors.email,
+                    }"
                     v-model="form.email"
                     required
                     autofocus
                     autocomplete="username"
                 />
-                <p v-if="form.errors.email" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.email }}
+                <p
+                    v-if="form.errors.email || frontendErrors.email"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.email || frontendErrors.email }}
                 </p>
             </div>
 
@@ -63,15 +99,19 @@ const submit = () => {
                     id="password"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.password || frontendErrors.password,
+                    }"
                     v-model="form.password"
                     required
                     autocomplete="current-password"
                 />
                 <p
-                    v-if="form.errors.password"
+                    v-if="form.errors.password || frontendErrors.password"
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.password }}
+                    {{ form.errors.password || frontendErrors.password }}
                 </p>
             </div>
 

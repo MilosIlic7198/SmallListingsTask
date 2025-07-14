@@ -49,7 +49,7 @@ function deleteListing(id) {
                         <div
                             class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
                         >
-                            <div class="p-6">
+                            <div v-if="listings.data.length != 0" class="p-6">
                                 <div
                                     class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                                 >
@@ -158,6 +158,9 @@ function deleteListing(id) {
                                     </template>
                                 </div>
                             </div>
+                            <p v-else class="p-6 mt-1 text-black">
+                                No listings
+                            </p>
                         </div>
                     </div>
                 </main>

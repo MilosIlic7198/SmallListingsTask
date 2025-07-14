@@ -1,6 +1,7 @@
 <script setup>
 import GuestLayout from "@/Layouts/GuestLayout.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
+import { ref } from "vue";
 
 const form = useForm({
     name: "",
@@ -9,9 +10,63 @@ const form = useForm({
     password_confirmation: "",
 });
 
+const frontendErrors = ref({});
+
+const validateForm = () => {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate name
+    if (!form.name || typeof form.name !== "string") {
+        frontendErrors.value.name = "The name is required.";
+    } else if (form.name.length > 255) {
+        frontendErrors.value.name =
+            "The name must be less than 255 characters.";
+    }
+
+    // Validate email
+    if (!form.email || typeof form.email !== "string") {
+        frontendErrors.value.email = "The email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        frontendErrors.value.email = "Please enter a valid email address.";
+    } else if (form.email.length > 255) {
+        frontendErrors.value.email =
+            "The email must be less than 255 characters.";
+    }
+
+    // Validate password
+    if (!form.password || typeof form.password !== "string") {
+        frontendErrors.value.password = "The password is required.";
+    } else if (form.password.length < 8) {
+        frontendErrors.value.password =
+            "The password must be at least 8 characters.";
+    }
+
+    // Validate password_confirmation
+    if (
+        !form.password_confirmation ||
+        typeof form.password_confirmation !== "string"
+    ) {
+        frontendErrors.value.password_confirmation =
+            "The password confirmation is required.";
+    } else if (form.password_confirmation !== form.password) {
+        frontendErrors.value.password_confirmation =
+            "The passwords must match.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
+};
+
 const submit = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     form.post(route("register"), {
-        onFinish: () => form.reset("password", "password_confirmation"),
+        onFinish: () => {
+            form.reset("password", "password_confirmation");
+            frontendErrors.value = {};
+        },
     });
 };
 </script>
@@ -32,13 +87,20 @@ const submit = () => {
                     id="name"
                     type="text"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.name || frontendErrors.name,
+                    }"
                     v-model="form.name"
                     required
                     autofocus
                     autocomplete="name"
                 />
-                <p v-if="form.errors.name" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.name }}
+                <p
+                    v-if="form.errors.name || frontendErrors.name"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.name || frontendErrors.name }}
                 </p>
             </div>
 
@@ -53,12 +115,19 @@ const submit = () => {
                     id="email"
                     type="email"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.email || frontendErrors.email,
+                    }"
                     v-model="form.email"
                     required
                     autocomplete="username"
                 />
-                <p v-if="form.errors.email" class="mt-2 text-sm text-red-600">
-                    {{ form.errors.email }}
+                <p
+                    v-if="form.errors.email || frontendErrors.email"
+                    class="mt-2 text-sm text-red-600"
+                >
+                    {{ form.errors.email || frontendErrors.email }}
                 </p>
             </div>
 
@@ -73,15 +142,19 @@ const submit = () => {
                     id="password"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.password || frontendErrors.password,
+                    }"
                     v-model="form.password"
                     required
                     autocomplete="new-password"
                 />
                 <p
-                    v-if="form.errors.password"
+                    v-if="form.errors.password || frontendErrors.password"
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.password }}
+                    {{ form.errors.password || frontendErrors.password }}
                 </p>
             </div>
 
@@ -96,15 +169,26 @@ const submit = () => {
                     id="password_confirmation"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.password_confirmation ||
+                            frontendErrors.password_confirmation,
+                    }"
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
                 />
                 <p
-                    v-if="form.errors.password_confirmation"
+                    v-if="
+                        form.errors.password_confirmation ||
+                        frontendErrors.password_confirmation
+                    "
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.password_confirmation }}
+                    {{
+                        form.errors.password_confirmation ||
+                        frontendErrors.password_confirmation
+                    }}
                 </p>
             </div>
 

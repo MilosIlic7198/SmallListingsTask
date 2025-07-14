@@ -30,8 +30,14 @@ const frontendErrors = ref({});
 
 // Fetch subcategories from parent_id selection.
 const fetchSubcategories = async (parentId, targetRef) => {
-    const response = await axios.get(`/categories/${parentId}/subcategories`);
-    targetRef.value = response.data;
+    try {
+        const response = await axios.get(
+            `/categories/${parentId}/subcategories`
+        );
+        targetRef.value = response.data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+    }
 };
 
 // Watch parent_id for changes

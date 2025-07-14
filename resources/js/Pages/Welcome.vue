@@ -18,37 +18,24 @@ const { props } = usePage();
 const { errors, auth, listings } = props;
 const store = useStore(); // Use the store
 
-function handleImageError() {
-    document.getElementById("image-container")?.classList.add("!hidden");
-    document.getElementById("listing-card")?.classList.add("!row-span-1");
-    document.getElementById("listing-card-content")?.classList.add("!flex-row");
-}
-
 const isSidebarOpen = ref(false);
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
 }
 
 function applySearchFilter() {
-    // Update the search term in the store
     store.setSearch(store.search);
     router.get(route("index"), {
-        category_id:
-            store.grandchild_id || store.child_id || store.parent_id || null,
+        category_id: store.category_id,
         search: store.search,
     });
 }
 
-function clearFilter() {
+function clearSearchFilter() {
     store.clearSearch();
-    store.search = "";
     router.get(route("index"), {
-        onSuccess: () => {
-            console.log("Filter cleared");
-        },
-        onError: (errors) => {
-            console.error("Error clearing filter:", errors);
-        },
+        category_id: store.category_id,
+        search: "",
     });
 }
 </script>
@@ -158,7 +145,7 @@ function clearFilter() {
                             </button>
                             <button
                                 type="button"
-                                @click="clearFilter"
+                                @click="clearSearchFilter"
                                 class="bg-gray-600 text-white rounded-md py-2 px-4 text-sm hover:bg-gray-700 transition"
                             >
                                 Clear
@@ -171,6 +158,7 @@ function clearFilter() {
             <!-- Main Section -->
             <main class="mt-6 px-4 sm:px-6 lg:px-8">
                 <div
+                    v-if="listings.data.length != 0"
                     class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 >
                     <!-- Example Card -->
@@ -193,7 +181,6 @@ function clearFilter() {
                                 "
                                 alt="Listing Image"
                                 class="w-full h-full rounded-md object-cover object-top"
-                                @error="handleImageError"
                             />
                         </div>
 
@@ -238,6 +225,9 @@ function clearFilter() {
                         />
                     </template>
                 </div>
+                <p v-else class="mt-1 text-black flex justify-center">
+                    No results
+                </p>
             </main>
 
             <!-- Footer -->

@@ -26,19 +26,15 @@ const grandchildCategories = ref([]);
 const frontendErrors = ref({});
 const imageInputRef = ref(null);
 
+// Fetch subcategories from parent_id selection.
 const fetchSubcategories = async (parentId, targetRef) => {
-    if (!parentId) {
-        targetRef.value = [];
-        return;
-    }
     try {
         const response = await axios.get(
             `/categories/${parentId}/subcategories`
         );
         targetRef.value = response.data;
     } catch (error) {
-        console.error("Error fetching subcategories:", error);
-        targetRef.value = [];
+        console.error("Error fetching categories:", error);
     }
 };
 

@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import CategoryNode from "@/Components/CategoryNode.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, usePage } from "@inertiajs/vue3";
 import { watch, ref } from "vue";
 
 defineProps({
@@ -10,6 +10,9 @@ defineProps({
     },
 });
 
+const { props } = usePage();
+const { errors, auth, categories } = props;
+
 const form = useForm({
     parent_id: null,
     child_id: null,
@@ -17,22 +20,40 @@ const form = useForm({
 });
 
 const childCategories = ref([]);
+const frontendErrors = ref({});
+const allCategories = ref([]);
 
 // Fetch child categories from parent_id selection
-const fetchChildCategories = async (parentId) => {
-    const response = await axios.get(`/categories/${parentId}/subcategories`);
-    childCategories.value = response.data;
+const fetchSubcategories = async (parentId, targetRef) => {
+    try {
+        const response = await axios.get(
+            `/categories/${parentId}/subcategories`
+        );
+        targetRef.value = response.data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+    }
+};
+
+// Fetch all categories
+const fetchAllCategories = async () => {
+    try {
+        const response = await axios.get("/categories/all");
+        allCategories.value = response.data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+    }
 };
 
 // Watch parent_id for changes
 watch(
     () => form.parent_id,
     (newParentId) => {
+        form.child_id = null;
         if (newParentId === null) {
             childCategories.value = [];
-            form.child_id = null;
         } else {
-            fetchChildCategories(newParentId);
+            fetchSubcategories(newParentId, childCategories);
         }
     }
 );
@@ -47,8 +68,76 @@ const removeNewCategory = (index) => {
     form.newCategories.splice(index, 1);
 };
 
+// Validate form
+function validateForm() {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate newCategories
+    if (!form.newCategories.length) {
+        frontendErrors.value.newCategories =
+            "At least one category is required.";
+    }
+
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    form.newCategories.forEach((category, index) => {
+        if (!category.name || typeof category.name !== "string") {
+            frontendErrors.value[`newCategories.${index}.name`] =
+                "The category name is required.";
+        } else if (category.name.length > 255) {
+            frontendErrors.value[`newCategories.${index}.name`] =
+                "The category name must be less than 255 characters.";
+        } else if (!nameRegex.test(category.name)) {
+            frontendErrors.value[`newCategories.${index}.name`] =
+                "The category name can only contain letters, spaces, and hyphens.";
+        } else {
+            // Check for duplicate names among new categories
+            const duplicate = form.newCategories.some(
+                (other, otherIndex) =>
+                    otherIndex !== index &&
+                    other.name.toLowerCase() === category.name.toLowerCase()
+            );
+            if (duplicate) {
+                frontendErrors.value[`newCategories.${index}.name`] =
+                    "This category name is duplicated in the form.";
+            }
+            // Check for duplicate names against existing categories
+            const exists = allCategories.value.some(
+                (existing) =>
+                    existing.name.toLowerCase() === category.name.toLowerCase()
+            );
+            if (exists) {
+                frontendErrors.value[`newCategories.${index}.name`] =
+                    "This category name already exists.";
+            }
+        }
+    });
+
+    // Validate parent_id
+    if (
+        form.parent_id &&
+        !categories.some((category) => category.id === form.parent_id)
+    ) {
+        frontendErrors.value.parent_id = "Please select a valid top category.";
+    }
+
+    // Validate child_id
+    if (
+        form.child_id &&
+        !childCategories.value.some((child) => child.id === form.child_id)
+    ) {
+        frontendErrors.value.child_id = "Please select a valid subcategory.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
+}
+
 // Submit the form
 const submit = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     form.post(route("admin.categories.store"), {
         onSuccess: () => {
             form.reset();
@@ -60,14 +149,6 @@ const submit = () => {
     });
 };
 
-const allCategories = ref([]);
-
-// Fetch all categories
-const fetchAllCategories = async () => {
-    const response = await axios.get("/categories/all");
-    allCategories.value = response.data;
-};
-
 fetchAllCategories();
 </script>
 
@@ -75,20 +156,23 @@ fetchAllCategories();
     <Head title="Manage Categories" />
 
     <div class="flex min-h-screen bg-gray-100">
-        <!-- Main content -->
         <div class="flex flex-col w-full min-h-screen">
-            <!-- Authenticated layout -->
             <AuthenticatedLayout>
                 <main class="flex-1 py-6 px-6 sm:px-8 lg:px-10">
                     <div class="max-w-7xl mx-auto">
-                        <div class="bg-white rounded-lg shadow-sm">
+                        <div
+                            class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
+                        >
                             <div class="p-6 text-gray-900">
                                 <h2 class="text-2xl font-bold mb-6">
                                     Create Category
                                 </h2>
-                                <form @submit.prevent="submit">
+                                <form
+                                    @submit.prevent="submit"
+                                    class="space-y-6"
+                                >
                                     <!-- New Categories -->
-                                    <div class="mb-4">
+                                    <div>
                                         <label
                                             for="newCategories"
                                             class="block text-sm font-medium text-gray-700"
@@ -96,10 +180,16 @@ fetchAllCategories();
                                             New Categories
                                         </label>
                                         <p
-                                            v-if="form.errors.newCategories"
+                                            v-if="
+                                                form.errors.newCategories ||
+                                                frontendErrors.newCategories
+                                            "
                                             class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.newCategories }}
+                                            {{
+                                                form.errors.newCategories ||
+                                                frontendErrors.newCategories
+                                            }}
                                         </p>
                                         <div
                                             v-for="(
@@ -112,7 +202,17 @@ fetchAllCategories();
                                                 <input
                                                     v-model="category.name"
                                                     type="text"
-                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                    :id="`newCategory-${index}`"
+                                                    class="mt-1 block w-full rounded-md border-gray-300 Prada shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                                    :class="{
+                                                        'border-red-500':
+                                                            form.errors[
+                                                                `newCategories.${index}.name`
+                                                            ] ||
+                                                            frontendErrors[
+                                                                `newCategories.${index}.name`
+                                                            ],
+                                                    }"
                                                     :placeholder="`Enter category #${
                                                         index + 1
                                                     }`"
@@ -131,6 +231,9 @@ fetchAllCategories();
                                                 v-if="
                                                     form.errors[
                                                         `newCategories.${index}.name`
+                                                    ] ||
+                                                    frontendErrors[
+                                                        `newCategories.${index}.name`
                                                     ]
                                                 "
                                                 class="mt-1 text-sm text-red-600"
@@ -138,20 +241,9 @@ fetchAllCategories();
                                                 {{
                                                     form.errors[
                                                         `newCategories.${index}.name`
-                                                    ]
-                                                }}
-                                            </p>
-                                            <p
-                                                v-if="
-                                                    form.errors[
-                                                        `newCategories.required`
-                                                    ]
-                                                "
-                                                class="mt-1 text-sm text-red-600"
-                                            >
-                                                {{
-                                                    form.errors[
-                                                        `newCategories.required`
+                                                    ] ||
+                                                    frontendErrors[
+                                                        `newCategories.${index}.name`
                                                     ]
                                                 }}
                                             </p>
@@ -166,7 +258,7 @@ fetchAllCategories();
                                     </div>
 
                                     <!-- Top Category -->
-                                    <div class="mb-4">
+                                    <div>
                                         <label
                                             for="parent_id"
                                             class="block text-sm font-medium text-gray-700"
@@ -176,7 +268,12 @@ fetchAllCategories();
                                         <select
                                             v-model="form.parent_id"
                                             id="parent_id"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            :class="{
+                                                'border-red-500':
+                                                    form.errors.parent_id ||
+                                                    frontendErrors.parent_id,
+                                            }"
                                         >
                                             <option :value="null">
                                                 No Top Category
@@ -190,18 +287,21 @@ fetchAllCategories();
                                             </option>
                                         </select>
                                         <p
-                                            v-if="form.errors.parent_id"
-                                            class="mt-2 text-sm text-red-600"
+                                            v-if="
+                                                form.errors.parent_id ||
+                                                frontendErrors.parent_id
+                                            "
+                                            class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.parent_id }}
+                                            {{
+                                                form.errors.parent_id ||
+                                                frontendErrors.parent_id
+                                            }}
                                         </p>
                                     </div>
 
                                     <!-- Sub Categories -->
-                                    <div
-                                        v-if="childCategories.length > 0"
-                                        class="mb-4"
-                                    >
+                                    <div v-if="childCategories.length > 0">
                                         <label
                                             for="child_id"
                                             class="block text-sm font-medium text-gray-700"
@@ -211,7 +311,12 @@ fetchAllCategories();
                                         <select
                                             id="child_id"
                                             v-model="form.child_id"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            :class="{
+                                                'border-red-500':
+                                                    form.errors.child_id ||
+                                                    frontendErrors.child_id,
+                                            }"
                                         >
                                             <option :value="null">
                                                 No Sub Category
@@ -225,19 +330,25 @@ fetchAllCategories();
                                             </option>
                                         </select>
                                         <p
-                                            v-if="form.errors.child_id"
-                                            class="mt-2 text-sm text-red-600"
+                                            v-if="
+                                                form.errors.child_id ||
+                                                frontendErrors.child_id
+                                            "
+                                            class="mt-1 text-sm text-red-600"
                                         >
-                                            {{ form.errors.child_id }}
+                                            {{
+                                                form.errors.child_id ||
+                                                frontendErrors.child_id
+                                            }}
                                         </p>
                                     </div>
 
                                     <!-- Submit Button -->
-                                    <div>
+                                    <div class="flex justify-end">
                                         <button
                                             type="submit"
                                             :disabled="form.processing"
-                                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                                            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                                         >
                                             Create
                                         </button>
@@ -249,7 +360,7 @@ fetchAllCategories();
                                         >
                                             <p
                                                 v-if="form.recentlySuccessful"
-                                                class="text-sm text-gray-600"
+                                                class="ml-2 text-sm text-gray-600"
                                             >
                                                 Saved.
                                             </p>
@@ -260,14 +371,16 @@ fetchAllCategories();
                         </div>
                     </div>
                     <div class="max-w-7xl mx-auto mt-6">
-                        <div class="bg-white rounded-lg shadow-sm">
+                        <div
+                            class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
+                        >
                             <div class="p-6 text-gray-900">
                                 <h2 class="text-2xl font-bold mb-6">
                                     Edit or Delete Category
                                 </h2>
                                 <div class="space-y-4">
-                                    <!-- Recursive Category List -->
                                     <div
+                                        v-if="allCategories.length != 0"
                                         v-for="category in allCategories"
                                         :key="category.id"
                                     >
@@ -277,6 +390,9 @@ fetchAllCategories();
                                             @updated="fetchAllCategories"
                                         />
                                     </div>
+                                    <p v-else class="mt-1 text-black">
+                                        No categories
+                                    </p>
                                 </div>
                             </div>
                         </div>

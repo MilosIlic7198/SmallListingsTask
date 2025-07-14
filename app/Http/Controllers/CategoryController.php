@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class CategoryController extends Controller
     public function create()
     {
         return Inertia::render('Admin/Categories', [
-            'categories' => Category::whereNull('parent_id')->get()
+            'categories' => Category::whereNull(['parent_id', 'deleted_at'])->get() // Exclude soft-deleted categories
         ]);
     }
 
@@ -35,6 +36,7 @@ class CategoryController extends Controller
     {
         $categories = Category::whereNull('parent_id')
             ->with('children.children') //Eager load sub categories and sub sub categories.
+            ->whereNull('deleted_at') // Exclude soft-deleted categories
             ->get();
         return response()->json($categories);
     }
@@ -51,14 +53,9 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validate([
-            'parent_id' => 'nullable|exists:categories,id',
-            'child_id' => 'nullable|exists:categories,id',
-            'newCategories' => 'required|array|min:1',
-            'newCategories.*.name' => 'required|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated) {
             foreach ($validated['newCategories'] as $newCategory) {
@@ -94,12 +91,9 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(StoreCategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id|not_in:'.$category->id,
-        ]);
+        $validated = $request->validated();
 
         $category->update($validated);
 
@@ -114,15 +108,10 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        if ($category->children()->exists()) {
-            return redirect()->route('admin.categories.create')->with('flash', [
-            'type' => 'error',
-            'message' => 'Cannot delete category with subcategories.',
-            'category_id' => $category->id,
-        ]);
-        }
-
-        $category->delete();
+        DB::transaction(function () use ($category) {
+            // Recursively soft delete the category, its descendants, and associated listings
+            $category->deleteDescendantsAndListings();
+        });
 
         return redirect()->route('admin.categories.create')->with('flash', [
             'type' => 'success',
