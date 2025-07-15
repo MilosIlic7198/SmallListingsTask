@@ -42,4 +42,17 @@ class Listing extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $query = $this->newQuery();
+
+        // If user is admin, include allow trashed listings
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $query->withTrashed();
+        }
+
+        return $query->where($field ?? $this->getRouteKeyName(), $value)->firstOrFail();
+    }
 }

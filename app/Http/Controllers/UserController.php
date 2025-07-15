@@ -125,7 +125,7 @@ class UserController extends Controller
     }
 
     /**
-    * Remove the specified customer from storage.
+    * Restore the specified customer.
     */
     public function restore(User $customer)
     {

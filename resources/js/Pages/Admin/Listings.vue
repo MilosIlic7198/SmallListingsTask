@@ -133,6 +133,52 @@ defineProps({
                                                     : "/"
                                             }}
                                         </div>
+                                        <!-- Action buttons -->
+                                        <div class="mt-4 flex flex-wrap gap-2">
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'shared.listings.edit',
+                                                        listing.id
+                                                    )
+                                                "
+                                                class="inline-block px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md text-sm font-medium transition"
+                                            >
+                                                Edit
+                                            </Link>
+
+                                            <button
+                                                v-if="
+                                                    listing.deleted_at === null
+                                                "
+                                                @click="
+                                                    $inertia.delete(
+                                                        route(
+                                                            'shared.listings.destroy',
+                                                            listing.id
+                                                        )
+                                                    )
+                                                "
+                                                class="inline-block px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md text-sm font-medium transition"
+                                            >
+                                                Delete
+                                            </button>
+
+                                            <button
+                                                v-else
+                                                @click="
+                                                    $inertia.patch(
+                                                        route(
+                                                            'shared.listings.restore',
+                                                            listing.id
+                                                        )
+                                                    )
+                                                "
+                                                class="inline-block px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md text-sm font-medium transition"
+                                            >
+                                                Restore
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

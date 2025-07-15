@@ -137,18 +137,12 @@ defineProps({
                                                     <button
                                                         v-else
                                                         @click="
-                                                            console.log(
-                                                                route(
-                                                                    'admin.customers.restore',
-                                                                    customer.id
-                                                                )
-                                                            );
                                                             $inertia.patch(
                                                                 route(
                                                                     'admin.customers.restore',
                                                                     customer.id
                                                                 )
-                                                            );
+                                                            )
                                                         "
                                                         class="text-green-600 hover:text-green-800"
                                                     >

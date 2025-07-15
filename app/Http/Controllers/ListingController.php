@@ -175,6 +175,27 @@ class ListingController extends Controller
     }
 
     /**
+    * Restore the specified listing.
+    */
+    public function restore(Listing $listing)
+    {
+        $redirectRoute = $this->getRedirectRouteByRole();
+        try {
+            $this->listingService->restoreListing($listing);
+
+            return redirect()->route($redirectRoute)->with('flash', [
+                'type' => 'success',
+                'message' => 'Listing restored successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route($redirectRoute)->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to restored listing: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
     * Determine redirect route based on user role.
     */
     protected function getRedirectRouteByRole(): string

@@ -169,6 +169,17 @@ class ListingService
     }
 
     /**
+    * Restore a listing
+    *
+    * @param Listing $listing
+    * @return void
+    */
+    public function restoreListing(Listing $listing)
+    {
+        $listing->restore();
+    }
+
+    /**
      * Upload an image for a listing.
      *
      * @param \Illuminate\Http\UploadedFile $image

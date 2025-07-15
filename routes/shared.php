@@ -18,6 +18,9 @@ Route::middleware(['auth', 'role:admin,customer'])->prefix('shared')->name('shar
     // For some fucking reason image upload does not work on PUT and PATCH so POST for updating a listing!
     Route::post('/listings/{listing}/update', [ListingController::class, 'update'])->name('listings.update');
 
+    // Restore a soft-deleted listing
+    Route::patch('listings/{listing}/restore', [ListingController::class, 'restore'])->name('listings.restore');
+
     // Listing routes shared between admin & customer
     Route::resource('listings', ListingController::class)->only([
         'create', 'store', 'edit', 'destroy'
