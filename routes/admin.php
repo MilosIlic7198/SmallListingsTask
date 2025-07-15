@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ListingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +16,12 @@ use Inertia\Inertia;
 */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Admin dashboard views
-    Route::get('/listings', fn () => Inertia::render('Admin/Listings'))->name('listings');
+    // Listings management
+    Route::resource('listings', ListingController::class)->only([
+        'index'
+    ])->names([
+        'index' => 'listings.index',
+    ]);
 
     // Category management
     Route::resource('customers', UserController::class)->only([

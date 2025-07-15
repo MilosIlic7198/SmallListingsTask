@@ -37,7 +37,7 @@ watch(
 
 // Handle category filter submission
 function applyCategoryFilter() {
-    router.get(route("index"), {
+    router.get(route("publicIndex"), {
         category_id: store.category_id,
         search: store.search,
     });
@@ -46,7 +46,7 @@ function applyCategoryFilter() {
 // Clear filter and reset selections
 function clearFilter() {
     store.clearSelections();
-    router.get(route("index"), {
+    router.get(route("publicIndex"), {
         category_id: null,
         search: store.search,
     });

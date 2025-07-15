@@ -69,7 +69,7 @@ function toggleSidebar() {
                     <div
                         class="flex justify-center sm:col-start-1 sm:justify-start lg:col-start-2 lg:justify-center"
                     >
-                        <Link :href="route('index')">
+                        <Link :href="route('publicIndex')">
                             <ApplicationLogo
                                 class="h-16 w-16 fill-current text-gray-800"
                             />
@@ -155,7 +155,7 @@ function toggleSidebar() {
                                 Posted by: {{ listing.user?.name || "Unknown" }}
                             </p>
                             <Link
-                                :href="route('index')"
+                                :href="route('publicIndex')"
                                 class="mt-4 inline-block bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
                             >
                                 Back to Listings

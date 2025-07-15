@@ -23,6 +23,24 @@ class ListingController extends Controller
      */
     public function index(Request $request): Response
     {
+        try {
+            $listings = $this->listingService->getAllListings($request);
+            return Inertia::render('Admin/Listings', [
+                'listings' => $listings,
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.listings.index')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to retrieve listings: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+    * Display a listing of the resource for public view.
+    */
+    public function publicIndex(Request $request): Response
+    {
         return Inertia::render('Welcome', [
             'listings' => $this->listingService->getFilteredListings($request),
             'categories' => $this->listingService->getCategories(),
@@ -30,7 +48,7 @@ class ListingController extends Controller
     }
 
     /**
-     * Display the authenticated user's listings.
+     * Display the customer listings.
      */
     public function customerListings(): Response
     {

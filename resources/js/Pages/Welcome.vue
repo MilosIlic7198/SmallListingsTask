@@ -25,7 +25,7 @@ function toggleSidebar() {
 
 function applySearchFilter() {
     store.setSearch(store.search);
-    router.get(route("index"), {
+    router.get(route("publicIndex"), {
         category_id: store.category_id,
         search: store.search,
     });
@@ -33,7 +33,7 @@ function applySearchFilter() {
 
 function clearSearchFilter() {
     store.clearSearch();
-    router.get(route("index"), {
+    router.get(route("publicIndex"), {
         category_id: store.category_id,
         search: "",
     });
@@ -85,7 +85,7 @@ function clearSearchFilter() {
                     <div
                         class="flex justify-center sm:col-start-1 sm:justify-start lg:col-start-2 lg:justify-center"
                     >
-                        <Link :href="route('index')">
+                        <Link :href="route('publicIndex')">
                             <ApplicationLogo
                                 class="h-16 w-16 fill-current text-gray-800"
                             />

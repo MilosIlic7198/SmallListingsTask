@@ -11,6 +11,44 @@ use Illuminate\Support\Facades\Storage;
 class ListingService
 {
     /**
+    * Get all listings for admin view.
+    *
+    * @param Request $request
+    * @param int $perPage
+    * @return \Illuminate\Pagination\LengthAwarePaginator
+    */
+    public function getAllListings(Request $request, int $perPage = 8)
+    {
+        try {
+            $query = Listing::withTrashed()->with(['category', 'user']);
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                            $categoryQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                      ->orWhere('email', 'like', "%{$search}%");
+                        });
+
+                    if (is_numeric($search)) {
+                        $q->orWhere('price', 'like', "%{$search}%");
+                    }
+                });
+            }
+
+            return $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        } catch (\Exception $e) {
+            throw new \Exception('Error retrieving listings: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get filtered and paginated listings.
      *
      * @param Request $request

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [ListingController::class, 'index'])->name('index');
+Route::get('/', [ListingController::class, 'publicIndex'])->name('publicIndex');
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->name('listings.show');
 
 // Public API-style routes for categories
