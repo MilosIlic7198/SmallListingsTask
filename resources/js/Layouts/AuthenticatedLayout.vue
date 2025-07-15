@@ -39,9 +39,9 @@ const showingUserDropdown = ref(false);
                                     Dashboard
                                 </a>
                                 <a
-                                    :href="route('admin.customers')"
+                                    :href="route('admin.customers.index')"
                                     :class="[
-                                        route().current('admin.customers')
+                                        route().current('admin.customers.index')
                                             ? 'border-indigo-500 text-gray-900'
                                             : 'text-gray-600 hover:text-gray-900 hover:border-indigo-500',
                                         'inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium',
@@ -219,9 +219,9 @@ const showingUserDropdown = ref(false);
                         </a>
                         <a
                             v-if="auth.role === 'admin'"
-                            :href="route('admin.customers')"
+                            :href="route('admin.customers.index')"
                             :class="[
-                                route().current('admin.customers')
+                                route().current('admin.customers.index')
                                     ? 'border-l-4 border-indigo-500 bg-indigo-50 text-indigo-700'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                                 'block pl-3 pr-4 py-2 text-base font-medium',

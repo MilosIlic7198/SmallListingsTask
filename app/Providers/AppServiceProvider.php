@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Vite;
 use App\Services\ListingService;
 use App\Services\CategoryService;
+use App\Services\UserService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->singleton(CategoryService::class, function ($app) {
             return new CategoryService();
+        });
+        $this->app->singleton(UserService::class, function ($app) {
+            return new UserService();
         });
     }
 

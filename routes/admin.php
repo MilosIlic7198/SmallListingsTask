@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,8 +16,14 @@ use Inertia\Inertia;
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Admin dashboard views
-    Route::get('/customers', fn () => Inertia::render('Admin/Customers'))->name('customers');
     Route::get('/listings', fn () => Inertia::render('Admin/Listings'))->name('listings');
+
+    // Category management
+    Route::resource('customers', UserController::class)->only([
+        'index',
+    ])->names([
+        'index' => 'customers.index',
+    ]);
 
     // Category management
     Route::resource('categories', CategoryController::class)->only([
