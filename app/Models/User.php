@@ -53,4 +53,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Listing::class);
     }
+
+    /**
+     * Check user role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
 }

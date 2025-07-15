@@ -20,9 +20,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Category management
     Route::resource('customers', UserController::class)->only([
-        'index',
+        'index', 'create', 'store'
     ])->names([
         'index' => 'customers.index',
+        'create' => 'customers.create',
+        'store' => 'customers.store',
     ]);
 
     // Category management

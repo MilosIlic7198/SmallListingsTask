@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\UserService;
+use App\Http\Requests\StoreCustomerRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,15 +35,27 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Customers/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        //
+       try {
+            $this->userService->createCustomer($request->validated());
+
+            return redirect()->route('admin.customers.index')->with('flash', [
+                'type' => 'success',
+                'message' => 'Customer created successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.customers.index')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to create customer: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     /**
