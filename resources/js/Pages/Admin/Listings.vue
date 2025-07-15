@@ -113,6 +113,12 @@ defineProps({
                                         </div>
                                         <div class="text-sm text-gray-700">
                                             <span class="font-medium"
+                                                >User:</span
+                                            >
+                                            {{ listing.phone }}
+                                        </div>
+                                        <div class="text-sm text-gray-700">
+                                            <span class="font-medium"
                                                 >Created:</span
                                             >
                                             {{

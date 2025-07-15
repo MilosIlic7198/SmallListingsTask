@@ -94,13 +94,19 @@ defineProps({
                                                 {{
                                                     customer.deleted_at === null
                                                         ? "/"
-                                                        : customer.deleted_at
+                                                        : new Date(
+                                                              customer.deleted_at
+                                                          ).toLocaleDateString()
                                                 }}
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                                             >
-                                                {{ customer.created_at }}
+                                                {{
+                                                    new Date(
+                                                        customer.created_at
+                                                    ).toLocaleDateString()
+                                                }}
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
