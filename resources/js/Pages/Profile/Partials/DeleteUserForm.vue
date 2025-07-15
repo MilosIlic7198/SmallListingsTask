@@ -10,6 +10,19 @@ const form = useForm({
     password: "",
 });
 
+const frontendErrors = ref({});
+
+const validateForm = () => {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate password
+    if (!form.password || typeof form.password !== "string") {
+        frontendErrors.value.password = "The password is required.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
+};
+
 const confirmUserDeletion = () => {
     confirmingUserDeletion.value = true;
 
@@ -17,9 +30,17 @@ const confirmUserDeletion = () => {
 };
 
 const deleteUser = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     form.delete(route("profile.destroy"), {
         onSuccess: () => closeModal(),
-        onError: () => passwordInput.value.focus(),
+        onError: () => {
+            passwordInput.value.focus();
+            frontendErrors.value = {};
+        },
         onFinish: () => form.reset(),
     });
 };
@@ -29,6 +50,7 @@ const closeModal = () => {
 
     form.clearErrors();
     form.reset();
+    frontendErrors.value = {};
 };
 </script>
 
@@ -71,14 +93,18 @@ const closeModal = () => {
                         v-model="form.password"
                         type="password"
                         class="mt-1 block w-3/4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        :class="{
+                            'border-red-500':
+                                form.errors.password || frontendErrors.password,
+                        }"
                         placeholder="Password"
                         @keyup.enter="deleteUser"
                     />
                     <p
-                        v-if="form.errors.password"
+                        v-if="form.errors.password || frontendErrors.password"
                         class="mt-2 text-sm text-red-600"
                     >
-                        {{ form.errors.password }}
+                        {{ form.errors.password || frontendErrors.password }}
                     </p>
                 </div>
 

@@ -22,10 +22,6 @@ const isSidebarOpen = ref(false);
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
 }
-
-function handleImageError() {
-    document.getElementById("image-container")?.classList.add("!hidden");
-}
 </script>
 
 <template>
@@ -132,7 +128,6 @@ function handleImageError() {
                                 "
                                 alt="Listing Image"
                                 class="w-full h-auto max-h-[400px] rounded-md object-contain"
-                                @error="handleImageError"
                             />
                         </div>
 

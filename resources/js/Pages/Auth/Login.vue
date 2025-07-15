@@ -42,7 +42,7 @@ const submit = () => {
         return;
     }
 
-    form.post(route("login"), {
+    form.post(route("login.store"), {
         onFinish: () => {
             form.reset("password");
             frontendErrors.value = {};

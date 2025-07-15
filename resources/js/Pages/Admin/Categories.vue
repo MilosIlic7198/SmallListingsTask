@@ -23,6 +23,23 @@ const childCategories = ref([]);
 const frontendErrors = ref({});
 const allCategories = ref([]);
 
+// All categories names for unique name validation
+const allNames = ref([]);
+
+// Recursive function to extract all category names
+const extractNames = (categories) => {
+    let names = [];
+
+    categories.forEach((category) => {
+        names.push(category.name);
+        if (category.children && category.children.length > 0) {
+            names = names.concat(extractNames(category.children));
+        }
+    });
+
+    return names;
+};
+
 // Fetch child categories from parent_id selection
 const fetchSubcategories = async (parentId, targetRef) => {
     try {
@@ -40,6 +57,7 @@ const fetchAllCategories = async () => {
     try {
         const response = await axios.get("/categories/all");
         allCategories.value = response.data;
+        allNames.value = extractNames(allCategories.value);
     } catch (error) {
         console.error("Error fetching categories:", error);
     }
@@ -385,6 +403,7 @@ fetchAllCategories();
                                         :key="category.id"
                                     >
                                         <CategoryNode
+                                            :allNames="allNames"
                                             :category="category"
                                             :depth="0"
                                             @updated="fetchAllCategories"

@@ -1,16 +1,15 @@
 <script setup>
 import Modal from "@/Components/Modal.vue";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
-defineProps({
+const { allNames, category, depth } = defineProps({
+    allNames: Array,
     category: Object,
     depth: Number,
 });
 
 const emit = defineEmits(["updated"]);
-
-const page = usePage();
 
 const isEditing = ref(false);
 const editForm = useForm({
@@ -24,17 +23,6 @@ const deleteForm = useForm({});
 // Reactive property to hold errors for individual categories
 const categoryErrors = ref({});
 const frontendErrors = ref({});
-
-// Fetch all categories for unique name validation
-const allCategories = ref([]);
-const fetchAllCategories = async () => {
-    try {
-        const response = await axios.get("/categories/all");
-        allCategories.value = response.data;
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-    }
-};
 
 const startEditing = (category) => {
     isEditing.value = true;
@@ -62,10 +50,13 @@ const validateForm = () => {
             "The category name can only contain letters, spaces, and hyphens.";
     } else {
         // Check for duplicate names (excluding the current category)
-        const exists = allCategories.value.some(
-            (category) =>
-                category.id !== editForm.id &&
-                category.name.toLowerCase() === editForm.name.toLowerCase()
+
+        const filteredNames = allNames.filter(
+            (name) => name.toLowerCase() !== category.name.toLowerCase()
+        );
+
+        const exists = filteredNames.some(
+            (name) => name.toLowerCase() === editForm.name.toLowerCase()
         );
         if (exists) {
             frontendErrors.value.name = "This category name already exists.";
@@ -252,6 +243,7 @@ const deleteCategory = (categoryId) => {
                 :key="child.id"
                 :category="child"
                 :depth="depth + 1"
+                :allNames="allNames"
                 @updated="emit('updated')"
             />
         </div>

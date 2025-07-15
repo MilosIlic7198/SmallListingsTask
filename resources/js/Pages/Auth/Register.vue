@@ -62,7 +62,7 @@ const submit = () => {
         return;
     }
 
-    form.post(route("register"), {
+    form.post(route("register.store"), {
         onFinish: () => {
             form.reset("password", "password_confirmation");
             frontendErrors.value = {};

@@ -165,7 +165,7 @@ function clearSearchFilter() {
                     <a
                         v-for="(listing, index) in listings.data"
                         :key="index"
-                        :href="route('show', listing.id)"
+                        :href="route('listings.show', listing.id)"
                         id="listing-card"
                         class="flex flex-col items-start gap-4 overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition duration-300 hover:text-black/70 hover:ring-gray-300 focus:outline-none focus-visible:ring-[#FF2D20]"
                     >

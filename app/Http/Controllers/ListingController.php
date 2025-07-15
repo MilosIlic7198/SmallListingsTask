@@ -60,12 +60,12 @@ class ListingController extends Controller
                 $request->file('image')
             );
 
-            return redirect()->route('customer.create')->with('flash', [
+            return redirect()->route('customer.listings.create')->with('flash', [
                 'type' => 'success',
                 'message' => 'Listing created successfully.',
             ]);
         } catch (\Exception $e) {
-            return redirect()->route('customer.create')->with('flash', [
+            return redirect()->route('customer.listings.create')->with('flash', [
                 'type' => 'error',
                 'message' => $e->getMessage(),
             ]);

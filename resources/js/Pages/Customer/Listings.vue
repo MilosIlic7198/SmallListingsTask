@@ -9,14 +9,8 @@ defineProps({
     },
 });
 
-function handleImageError() {
-    document.getElementById("image-container")?.classList.add("!hidden");
-    document.getElementById("listing-card")?.classList.add("!row-span-1");
-    document.getElementById("listing-card-content")?.classList.add("!flex-row");
-}
-
 function deleteListing(id) {
-    router.delete(route("customer.destroy", id), {
+    router.delete(route("customer.listings.destroy", id), {
         onSuccess: () => {
             alert("Listing deleted successfully");
         },
@@ -40,7 +34,7 @@ function deleteListing(id) {
                             <h2 class="text-2xl font-bold">My Listings</h2>
                             <a
                                 type="button"
-                                :href="route('customer.create')"
+                                :href="route('customer.listings.create')"
                                 class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             >
                                 Create Listing
@@ -75,7 +69,6 @@ function deleteListing(id) {
                                                 "
                                                 alt="Listing Image"
                                                 class="w-full h-48 sm:h-56 object-contain object-center rounded-md"
-                                                @error="handleImageError"
                                             />
                                         </div>
 
@@ -110,7 +103,7 @@ function deleteListing(id) {
                                             <Link
                                                 :href="
                                                     route(
-                                                        'customer.edit',
+                                                        'customer.listings.edit',
                                                         listing.id
                                                     )
                                                 "

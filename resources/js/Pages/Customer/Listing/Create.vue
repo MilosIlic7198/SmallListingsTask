@@ -76,7 +76,7 @@ function submit() {
         return;
     }
 
-    form.post(route("customer.store"), {
+    form.post(route("customer.listings.store"), {
         onSuccess: () => {
             imageInputRef.value.value = null;
             form.reset();

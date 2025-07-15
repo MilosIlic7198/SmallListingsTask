@@ -181,7 +181,7 @@ const submit = () => {
         console.log("Form front validation failed", frontendErrors.value);
         return;
     }
-    form.post(route("customer.update", props.listing.id), {
+    form.post(route("customer.listings.update", props.listing.id), {
         onSuccess: () => {
             imageInputRef.value = null;
             router.visit(route("customer.listings"));

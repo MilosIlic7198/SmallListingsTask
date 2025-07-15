@@ -31,16 +31,9 @@ class CategoryController extends Controller
      */
     public function create(): Response
     {
-        try {
-            return Inertia::render('Admin/Categories', [
-                'categories' => $this->categoryService->getCategoriesForForm(),
-            ]);
-        } catch (\Exception $e) {
-            return redirect()->route('admin.categories.create')->with('flash', [
-                'type' => 'error',
-                'message' => 'Failed to load the create form. Please try again.',
-            ]);
-        }
+        return Inertia::render('Admin/Categories', [
+            'categories' => $this->categoryService->getCategoriesForForm(),
+        ]);
     }
 
     /**

@@ -11,7 +11,46 @@ const form = useForm({
     password_confirmation: "",
 });
 
+const frontendErrors = ref({});
+
+const validateForm = () => {
+    frontendErrors.value = {}; // Reset errors
+
+    // Validate current_password
+    if (!form.current_password || typeof form.current_password !== "string") {
+        frontendErrors.value.current_password =
+            "The current password is required.";
+    }
+
+    // Validate password
+    if (!form.password || typeof form.password !== "string") {
+        frontendErrors.value.password = "The new password is required.";
+    } else if (form.password.length < 8) {
+        frontendErrors.value.password =
+            "The new password must be at least 8 characters.";
+    }
+
+    // Validate password_confirmation
+    if (
+        !form.password_confirmation ||
+        typeof form.password_confirmation !== "string"
+    ) {
+        frontendErrors.value.password_confirmation =
+            "The password confirmation is required.";
+    } else if (form.password !== form.password_confirmation) {
+        frontendErrors.value.password_confirmation =
+            "The passwords do not match.";
+    }
+
+    return Object.keys(frontendErrors.value).length === 0;
+};
+
 const updatePassword = () => {
+    if (!validateForm()) {
+        console.error("Form validation failed", frontendErrors.value);
+        return;
+    }
+
     form.put(route("password.update"), {
         onSuccess: () => form.reset(),
         onError: () => {
@@ -23,6 +62,9 @@ const updatePassword = () => {
                 form.reset("current_password");
                 currentPasswordInput.value.focus();
             }
+        },
+        onFinish: () => {
+            frontendErrors.value = {};
         },
     });
 };
@@ -53,13 +95,24 @@ const updatePassword = () => {
                     v-model="form.current_password"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.current_password ||
+                            frontendErrors.current_password,
+                    }"
                     autocomplete="current-password"
                 />
                 <p
-                    v-if="form.errors.current_password"
+                    v-if="
+                        form.errors.current_password ||
+                        frontendErrors.current_password
+                    "
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.current_password }}
+                    {{
+                        form.errors.current_password ||
+                        frontendErrors.current_password
+                    }}
                 </p>
             </div>
 
@@ -76,13 +129,17 @@ const updatePassword = () => {
                     v-model="form.password"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.password || frontendErrors.password,
+                    }"
                     autocomplete="new-password"
                 />
                 <p
-                    v-if="form.errors.password"
+                    v-if="form.errors.password || frontendErrors.password"
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.password }}
+                    {{ form.errors.password || frontendErrors.password }}
                 </p>
             </div>
 
@@ -98,13 +155,24 @@ const updatePassword = () => {
                     v-model="form.password_confirmation"
                     type="password"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :class="{
+                        'border-red-500':
+                            form.errors.password_confirmation ||
+                            frontendErrors.password_confirmation,
+                    }"
                     autocomplete="new-password"
                 />
                 <p
-                    v-if="form.errors.password_confirmation"
+                    v-if="
+                        form.errors.password_confirmation ||
+                        frontendErrors.password_confirmation
+                    "
                     class="mt-2 text-sm text-red-600"
                 >
-                    {{ form.errors.password_confirmation }}
+                    {{
+                        form.errors.password_confirmation ||
+                        frontendErrors.password_confirmation
+                    }}
                 </p>
             </div>
 
