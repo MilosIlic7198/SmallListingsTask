@@ -16,7 +16,8 @@ class UserService
     */
     public function getAllCustomers()
     {
-        return User::where('role', 'customer')
+        return User::withTrashed() 
+        ->where('role', 'customer')
         ->select('id', 'name', 'email', 'deleted_at', 'created_at')
         ->orderBy('created_at', 'desc')
         ->get();
@@ -36,5 +37,45 @@ class UserService
             'password' => Hash::make($data['password']),
             'role' => 'customer',
         ]);
+    }
+
+    /**
+    * Update an existing customer
+    *
+    * @param User $user
+    * @param array $data
+    * @return User
+    */
+    public function updateCustomer(User $customer, array $data)
+    {
+        $customer->update([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => isset($data['password']) ? Hash::make($data['password']) : $customer->password,
+        ]);
+
+        return $customer;
+    }
+
+    /**
+    * Delete a customer
+    *
+    * @param User $user
+    * @return void
+    */
+    public function deleteCustomer(User $customer)
+    {
+        $customer->delete();
+    }
+
+    /**
+    * Restore a customer
+    *
+    * @param User $user
+    * @return void
+    */
+    public function restoreCustomer(User $customer)
+    {
+        $customer->restore();
     }
 }

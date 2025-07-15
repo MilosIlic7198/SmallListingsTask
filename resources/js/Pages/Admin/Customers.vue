@@ -25,7 +25,7 @@ defineProps({
                                 <h2 class="text-2xl font-bold">Customers</h2>
                                 <Link
                                     :href="route('admin.customers.create')"
-                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo- FacetGridLayout-500 focus:ring-offset-2 disabled:opacity-50"
                                 >
                                     Create
                                 </Link>
@@ -64,6 +64,11 @@ defineProps({
                                             >
                                                 Created at
                                             </th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                            >
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody
@@ -87,7 +92,7 @@ defineProps({
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                                             >
                                                 {{
-                                                    customer.deleted_at == null
+                                                    customer.deleted_at === null
                                                         ? "/"
                                                         : customer.deleted_at
                                                 }}
@@ -96,6 +101,60 @@ defineProps({
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                                             >
                                                 {{ customer.created_at }}
+                                            </td>
+                                            <td
+                                                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                            >
+                                                <div class="flex space-x-2">
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'admin.customers.edit',
+                                                                customer.id
+                                                            )
+                                                        "
+                                                        class="text-blue-600 hover:text-blue-800"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                    <button
+                                                        v-if="
+                                                            customer.deleted_at ===
+                                                            null
+                                                        "
+                                                        @click="
+                                                            $inertia.delete(
+                                                                route(
+                                                                    'admin.customers.destroy',
+                                                                    customer.id
+                                                                )
+                                                            )
+                                                        "
+                                                        class="text-red-600 hover:text-red-800"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                    <button
+                                                        v-else
+                                                        @click="
+                                                            console.log(
+                                                                route(
+                                                                    'admin.customers.restore',
+                                                                    customer.id
+                                                                )
+                                                            );
+                                                            $inertia.patch(
+                                                                route(
+                                                                    'admin.customers.restore',
+                                                                    customer.id
+                                                                )
+                                                            );
+                                                        "
+                                                        class="text-green-600 hover:text-green-800"
+                                                    >
+                                                        Restore
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
