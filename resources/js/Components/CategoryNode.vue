@@ -1,4 +1,5 @@
 <script setup>
+import Modal from "@/Components/Modal.vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
@@ -93,9 +94,21 @@ const submitEdit = () => {
     });
 };
 
+const confirmingUserDeletion = ref(false);
+
+const confirmUserDeletion = () => {
+    confirmingUserDeletion.value = true;
+};
+
+const closeModal = () => {
+    confirmingUserDeletion.value = false;
+    deleteForm.reset();
+};
+
 const deleteCategory = (categoryId) => {
     deleteForm.delete(route("admin.categories.destroy", categoryId), {
         onSuccess: (response) => {
+            closeModal();
             const type = response.props.flash?.type;
             if (type === "error") {
                 categoryErrors.value[categoryId] =
@@ -109,6 +122,7 @@ const deleteCategory = (categoryId) => {
             categoryErrors.value[categoryId] = errors;
             console.error("Delete error:", errors);
         },
+        onFinish: () => deleteForm.reset(),
     });
 };
 </script>
@@ -194,12 +208,40 @@ const deleteCategory = (categoryId) => {
                 </button>
                 <button
                     class="text-red-500 hover:text-red-700"
-                    @click="deleteCategory(category.id)"
+                    @click="confirmUserDeletion()"
                 >
                     Delete
                 </button>
             </div>
         </div>
+        <Modal :show="confirmingUserDeletion" @close="closeModal">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Are you sure you want to delete this category?
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-600">
+                    Once this category is deleted, all of its descendants and
+                    associated listings will be deleted.
+                </p>
+
+                <div class="mt-6 flex justify-end">
+                    <button
+                        class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                        @click="closeModal"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        class="ml-3 inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                        :disabled="deleteForm.processing"
+                        @click="deleteCategory(category.id)"
+                    >
+                        Delete Category
+                    </button>
+                </div>
+            </div>
+        </Modal>
         <!-- Children -->
         <div
             v-if="category.children && category.children.length > 0"
