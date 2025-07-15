@@ -2,73 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Listing;
-use App\Models\Category;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreListingRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Listing;
+use App\Services\ListingService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ListingController extends Controller
 {
+    protected $listingService;
+
+    public function __construct(ListingService $listingService)
+    {
+        $this->listingService = $listingService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $query = Listing::query()->with('category')->whereNull('deleted_at'); // Eager load the category relationship
-
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")
-                ->orWhere('location', 'like', "%{$search}%")
-                ->orWhereHas('category', function ($categoryQuery) use ($search) {
-                  $categoryQuery->where('name', 'like', "%{$search}%");
-                });
-
-                if (is_numeric($search)) {
-                    $q->orWhere('price', 'like', "%{$search}%");
-                }
-            });
-        }
-
-        $listings = $query->paginate(8)->withQueryString();
-        $categories = Category::whereNull('parent_id')->get();
-
         return Inertia::render('Welcome', [
-            'listings' => $listings,
-            'categories' =>  $categories,
+            'listings' => $this->listingService->getFilteredListings($request),
+            'categories' => $this->listingService->getCategories(),
         ]);
     }
-    
-    /**
-     * Display a listing of the resource.
-     */
-    public function customerListings()
-    {
-        $listings = Listing::with('category')
-        ->where('user_id', Auth::id())
-        ->whereNull('deleted_at')
-        ->paginate(4);
 
-        return Inertia::render('Customer/Listings', ['listings' => $listings]);
+    /**
+     * Display the authenticated user's listings.
+     */
+    public function customerListings(): Response
+    {
+        return Inertia::render('Customer/Listings', [
+            'listings' => $this->listingService->getCustomerListings(),
+        ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        //
-        return Inertia::render('Customer/Listing/Create', ['categories' => Category::whereNull(['parent_id', 'deleted_at'])->get()]);
+        return Inertia::render('Customer/Listing/Create', [
+            'categories' => $this->listingService->getCategories(),
+        ]);
     }
 
     /**
@@ -76,147 +54,95 @@ class ListingController extends Controller
      */
     public function store(StoreListingRequest $request)
     {
-        // Get validated data
-        $validated = $request->validated();
-
-        // Assign the currently authenticated user
-        $validated['user_id'] = Auth::id();
-
-        // Create the listing first
-        $listing = Listing::create($validated);
-        // Handle image upload if exists
-        if ($request->hasFile('image')) {
-            $timestamp = now()->format('YmdHis');
-            $extension = $request->file('image')->getClientOriginalExtension();
-            $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
-
-            $path = \Storage::disk('public')->putFileAs(
-                'images',
-                $request->file('image'),
-                $filename
+        try {
+            $this->listingService->createListing(
+                $request->validated(),
+                $request->file('image')
             );
 
-            $validated['image_path'] = $path;
-            
-            // Update the listing with the image path
-            $listing->update(['image_path' => $validated['image_path']]);
+            return redirect()->route('customer.create')->with('flash', [
+                'type' => 'success',
+                'message' => 'Listing created successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('customer.create')->with('flash', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
         }
-
-        return redirect()->route('customer.create')->with('flash', [
-            'type' => 'success',
-            'message' => 'Listing created successfully.',
-        ]);
     }
-
 
     /**
      * Display the specified resource.
      */
-    public function show(Listing $listing)
+    public function show(Listing $listing): Response
     {
         return Inertia::render('Listing', [
             'listing' => $listing->load('category', 'user'),
-            'categories' => Category::whereNull(['parent_id', 'deleted_at'])->get()
+            'categories' => $this->listingService->getCategories(),
         ]);
     }
 
     /**
-    * Show the form for editing the specified resource.
-    */
-    public function edit(Listing $listing)
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Listing $listing): Response
     {
-        // Load the listing with its category
         $listing->load('category', 'user');
+        $pathIds = $this->listingService->getCategoryHierarchy($listing);
 
-        $categories = Category::whereNull(['parent_id', 'deleted_at'])->get();
-        
-        $pathIds = $listing->category?->getCategoryHierarchy() ?? [];
-
-
-         $parentId = $pathIds[0] ?? null;
-         $childId = $pathIds[1] ?? null;
-         $grandchildId = $pathIds[2] ?? null;
-
-         return Inertia::render('Customer/Listing/Edit', [
+        return Inertia::render('Customer/Listing/Edit', [
             'listing' => $listing,
-            'categories' => $categories,
+            'categories' => $this->listingService->getCategories(),
             'selectedCategories' => [
-                'parent_id' => $parentId,
-                'child_id' => $childId,
-                'grandchild_id' => $grandchildId,
+                'parent_id' => $pathIds[0] ?? null,
+                'child_id' => $pathIds[1] ?? null,
+                'grandchild_id' => $pathIds[2] ?? null,
             ],
         ]);
     }
 
     /**
-    * Update the specified resource in storage.
-    */
+     * Update the specified resource in storage.
+     */
     public function update(StoreListingRequest $request, Listing $listing)
     {
-        // Ensure the authenticated user owns the listing
-        if ($listing->user_id !== Auth::id()) {
-            return redirect()->route('customer.listings')->with('flash', [
-                'type' => 'error',
-                'message' => 'You are not authorized to update this listing.',
-            ]);
-        }
-        
-        // Get validated data
-        $validated = $request->validated();
-        
-        // Handle image upload if exists
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($listing->image_path) {
-                \Storage::disk('public')->delete($listing->image_path);
-            }
-            
-            $timestamp = now()->format('YmdHis');
-            $extension = $request->file('image')->getClientOriginalExtension();
-            $filename = "{$timestamp}_listing_{$listing->id}.{$extension}";
-
-            $path = \Storage::disk('public')->putFileAs(
-                'images',
-                $request->file('image'),
-                $filename
+        try {
+            $this->listingService->updateListing(
+                $listing,
+                $request->validated(),
+                $request->file('image')
             );
 
-            $validated['image_path'] = $path;
-        }
-
-        // Update the listing
-        $listing->update($validated);
-        
-        return redirect()->route('customer.listings')->with('flash', [
-            'type' => 'success',
-            'message' => 'Listing updated successfully.',
-        ]);
-    }
-    
-    /**
-    * Remove the specified resource from storage.
-    */
-    public function destroy(Listing $listing)
-    {
-        // Ensure the authenticated user owns the listing
-        if ($listing->user_id !== Auth::id()) {
+            return redirect()->route('customer.listings')->with('flash', [
+                'type' => 'success',
+                'message' => 'Listing updated successfully.',
+            ]);
+        } catch (\Exception $e) {
             return redirect()->route('customer.listings')->with('flash', [
                 'type' => 'error',
-                'message' => 'You are not authorized to delete this listing.',
+                'message' => $e->getMessage(),
             ]);
         }
-        
-        // Delete image if exists
-        if ($listing->image_path) {
-            \Storage::disk('public')->delete($listing->image_path);
-        }
-        
-        // Soft delete 
-        $listing->delete();
+    }
 
-        return redirect()->route('customer.listings')->with('flash', [
-            'type' => 'success',
-            'message' => 'Listing deleted successfully.',
-        ]);
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Listing $listing)
+    {
+        try {
+            $this->listingService->deleteListing($listing);
+
+            return redirect()->route('customer.listings')->with('flash', [
+                'type' => 'success',
+                'message' => 'Listing deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('customer.listings')->with('flash', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }

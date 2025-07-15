@@ -2,31 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Models\Category;
+use App\Services\CategoryService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        
+        //
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        return Inertia::render('Admin/Categories', [
-            'categories' => Category::whereNull(['parent_id', 'deleted_at'])->get() // Exclude soft-deleted categories
-        ]);
+        try {
+            return Inertia::render('Admin/Categories', [
+                'categories' => $this->categoryService->getCategoriesForForm(),
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to load the create form. Please try again.',
+            ]);
+        }
     }
 
     /**
@@ -34,11 +48,11 @@ class CategoryController extends Controller
      */
     public function all(Category $category)
     {
-        $categories = Category::whereNull('parent_id')
-            ->with('children.children') //Eager load sub categories and sub sub categories.
-            ->whereNull('deleted_at') // Exclude soft-deleted categories
-            ->get();
-        return response()->json($categories);
+        try {
+            return response()->json($this->categoryService->getAllCategories());
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch categories'], 500);
+        }
     }
 
     /**
@@ -46,8 +60,11 @@ class CategoryController extends Controller
      */
     public function subcategories(Category $category)
     {
-        $subcategories = $category->children()->get();
-        return response()->json($subcategories);
+        try {
+            return response()->json($this->categoryService->getSubcategories($category));
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch subcategories'], 500);
+        }
     }
 
     /**
@@ -55,21 +72,19 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validated();
+        try {
+            $this->categoryService->createCategories($request->validated());
 
-        DB::transaction(function () use ($validated) {
-            foreach ($validated['newCategories'] as $newCategory) {
-                Category::create([
-                    'name' => $newCategory['name'],
-                    'parent_id' => $validated['child_id'] ?? $validated['parent_id'],
-                ]);
-            }
-        });
-
-        return redirect()->route('admin.categories.create')->with('flash', [
-            'type' => 'success',
-            'message' => 'Category created successfully.',
-        ]);
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'success',
+                'message' => 'Category created successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to create category. Please try again.',
+            ]);
+        }
     }
 
     /**
@@ -77,7 +92,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        
+        //
     }
 
     /**
@@ -85,7 +100,7 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-
+        //
     }
 
     /**
@@ -93,14 +108,19 @@ class CategoryController extends Controller
      */
     public function update(StoreCategoryRequest $request, Category $category)
     {
-        $validated = $request->validated();
+        try {
+            $this->categoryService->updateCategory($category, $request->validated());
 
-        $category->update($validated);
-
-        return redirect()->route('admin.categories.create')->with('flash', [
-            'type' => 'success',
-            'message' => 'Category updated successfully.',
-        ]);
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'success',
+                'message' => 'Category updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to update category. Please try again.',
+            ]);
+        }
     }
 
     /**
@@ -108,14 +128,19 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        DB::transaction(function () use ($category) {
-            // Recursively soft delete the category, its descendants, and associated listings
-            $category->deleteDescendantsAndListings();
-        });
+        try {
+            // Recursively soft delete the category, its descendants, and associated listings.
+            $this->categoryService->deleteCategory($category);
 
-        return redirect()->route('admin.categories.create')->with('flash', [
-            'type' => 'success',
-            'message' => 'Category deleted successfully.',
-        ]);
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'success',
+                'message' => 'Category deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.create')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to delete category. Please try again.',
+            ]);
+        }
     }
 }

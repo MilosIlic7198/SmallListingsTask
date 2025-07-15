@@ -70,7 +70,11 @@ watch(
         form.child_id = null;
         form.grandchild_id = null;
         grandchildCategories.value = [];
-        fetchSubcategories(newParentId, childCategories);
+        if (newParentId) {
+            fetchSubcategories(newParentId, childCategories);
+        } else {
+            childCategories.value = [];
+        }
     }
 );
 
@@ -79,7 +83,11 @@ watch(
     () => form.child_id,
     (newChildId) => {
         form.grandchild_id = null;
-        fetchSubcategories(newChildId, grandchildCategories);
+        if (newChildId) {
+            fetchSubcategories(newChildId, grandchildCategories);
+        } else {
+            grandchildCategories.value = [];
+        }
     }
 );
 
