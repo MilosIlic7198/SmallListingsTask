@@ -20,6 +20,12 @@ defineProps({
                         <div class="bg-white p-6 rounded-lg shadow-sm">
                             <div class="flex justify-between items-center mb-6">
                                 <h2 class="text-2xl font-bold">Listings</h2>
+                                <Link
+                                    :href="route('shared.listings.create')"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                >
+                                    Create
+                                </Link>
                             </div>
 
                             <div
@@ -39,7 +45,10 @@ defineProps({
                                     class="bg-white rounded-lg shadow-md overflow-hidden"
                                 >
                                     <div
-                                        v-if="listing.image_path"
+                                        v-if="
+                                            listing.image_path &&
+                                            listing.deleted_at === null
+                                        "
                                         class="h-48 w-full"
                                     >
                                         <img

@@ -10,7 +10,7 @@ defineProps({
 });
 
 function deleteListing(id) {
-    router.delete(route("customer.listings.destroy", id), {
+    router.delete(route("shared.listings.destroy", id), {
         onSuccess: () => {
             alert("Listing deleted successfully");
         },
@@ -34,7 +34,7 @@ function deleteListing(id) {
                             <h2 class="text-2xl font-bold">My Listings</h2>
                             <a
                                 type="button"
-                                :href="route('customer.listings.create')"
+                                :href="route('shared.listings.create')"
                                 class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             >
                                 Create Listing
@@ -103,7 +103,7 @@ function deleteListing(id) {
                                             <Link
                                                 :href="
                                                     route(
-                                                        'customer.listings.edit',
+                                                        'shared.listings.edit',
                                                         listing.id
                                                     )
                                                 "

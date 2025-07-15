@@ -16,7 +16,7 @@ use Inertia\Inertia;
 */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Listings management
+    // Listings view
     Route::resource('listings', ListingController::class)->only([
         'index'
     ])->names([

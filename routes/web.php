@@ -15,11 +15,14 @@ use Illuminate\Support\Facades\Route;
 // Load public routes
 require __DIR__ . '/public.php';
 
+// Load shared routes
+require __DIR__.'/shared.php';
+
 // Load customer routes
 require __DIR__ . '/customer.php';
 
 // Load admin routes
 require __DIR__ . '/admin.php';
 
-// Load authentication routes (Laravel Breeze or similar)
+// Load authentication routes
 require __DIR__ . '/auth.php';

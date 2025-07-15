@@ -41,10 +41,17 @@ class ListingController extends Controller
     */
     public function publicIndex(Request $request): Response
     {
-        return Inertia::render('Welcome', [
-            'listings' => $this->listingService->getFilteredListings($request),
-            'categories' => $this->listingService->getCategories(),
-        ]);
+        try {
+            return Inertia::render('Welcome', [
+                'listings' => $this->listingService->getFilteredListings($request),
+                'categories' => $this->listingService->getCategories(),
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('publicIndex')->with('flash', [
+                'type' => 'error',
+                'message' => 'Failed to retrieve listings: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -62,7 +69,7 @@ class ListingController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Customer/Listing/Create', [
+        return Inertia::render('Listing/Create', [
             'categories' => $this->listingService->getCategories(),
         ]);
     }
@@ -72,18 +79,19 @@ class ListingController extends Controller
      */
     public function store(StoreListingRequest $request)
     {
+        $redirectRoute = $this->getRedirectRouteByRole();
         try {
             $this->listingService->createListing(
                 $request->validated(),
                 $request->file('image')
             );
 
-            return redirect()->route('customer.listings.create')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'success',
                 'message' => 'Listing created successfully.',
             ]);
         } catch (\Exception $e) {
-            return redirect()->route('customer.listings.create')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'error',
                 'message' => $e->getMessage(),
             ]);
@@ -109,7 +117,7 @@ class ListingController extends Controller
         $listing->load('category', 'user');
         $pathIds = $this->listingService->getCategoryHierarchy($listing);
 
-        return Inertia::render('Customer/Listing/Edit', [
+        return Inertia::render('Listing/Edit', [
             'listing' => $listing,
             'categories' => $this->listingService->getCategories(),
             'selectedCategories' => [
@@ -125,6 +133,7 @@ class ListingController extends Controller
      */
     public function update(StoreListingRequest $request, Listing $listing)
     {
+        $redirectRoute = $this->getRedirectRouteByRole();
         try {
             $this->listingService->updateListing(
                 $listing,
@@ -132,12 +141,12 @@ class ListingController extends Controller
                 $request->file('image')
             );
 
-            return redirect()->route('customer.listings')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'success',
                 'message' => 'Listing updated successfully.',
             ]);
         } catch (\Exception $e) {
-            return redirect()->route('customer.listings')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'error',
                 'message' => $e->getMessage(),
             ]);
@@ -149,18 +158,32 @@ class ListingController extends Controller
      */
     public function destroy(Listing $listing)
     {
+        $redirectRoute = $this->getRedirectRouteByRole();
         try {
             $this->listingService->deleteListing($listing);
 
-            return redirect()->route('customer.listings')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'success',
                 'message' => 'Listing deleted successfully.',
             ]);
         } catch (\Exception $e) {
-            return redirect()->route('customer.listings')->with('flash', [
+            return redirect()->route($redirectRoute)->with('flash', [
                 'type' => 'error',
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+    * Determine redirect route based on user role.
+    */
+    protected function getRedirectRouteByRole(): string
+    {
+        $user = auth()->user();
+        return match ($user->role) {
+            'admin' => 'admin.listings.index',
+            'customer' => 'customer.listings',
+            default => 'publicIndex',
+        };
     }
 }

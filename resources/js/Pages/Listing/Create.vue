@@ -76,9 +76,9 @@ function submit() {
         return;
     }
 
-    form.post(route("customer.listings.store"), {
+    form.post(route("shared.listings.store"), {
         onSuccess: () => {
-            imageInputRef.value.value = null;
+            imageInputRef.value = null;
             form.reset();
         },
         onError: (errors) => {

@@ -36,7 +36,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/Customers/Create');
+        return Inertia::render('Admin/Customer/Create');
     }
 
     /**
@@ -73,7 +73,7 @@ class UserController extends Controller
     public function edit(User $customer)
     {
         try {
-            return Inertia::render('Admin/Customers/Edit', [
+            return Inertia::render('Admin/Customer/Edit', [
                 'customer' => $customer->only('id', 'name', 'email')
             ]);
         } catch (\Exception $e) {
