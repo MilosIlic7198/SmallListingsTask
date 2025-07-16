@@ -2,7 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import CategoryNode from "@/Components/CategoryNode.vue";
 import { Head, useForm, usePage } from "@inertiajs/vue3";
-import { watch, ref } from "vue";
+import { watch, ref, computed } from "vue";
 
 defineProps({
     categories: {
@@ -22,6 +22,11 @@ const form = useForm({
 const childCategories = ref([]);
 const frontendErrors = ref({});
 const allCategories = ref([]);
+
+//Top categories
+const topCategories = computed(() => {
+    return allCategories.value.filter((cat) => cat.parent_id === null);
+});
 
 // All categories names for unique name validation
 const allNames = ref([]);
@@ -133,7 +138,7 @@ function validateForm() {
     // Validate parent_id
     if (
         form.parent_id &&
-        !categories.some((category) => category.id === form.parent_id)
+        !topCategories.value.some((category) => category.id === form.parent_id)
     ) {
         frontendErrors.value.parent_id = "Please select a valid top category.";
     }
@@ -297,7 +302,7 @@ fetchAllCategories();
                                                 No Top Category
                                             </option>
                                             <option
-                                                v-for="category in categories"
+                                                v-for="category in topCategories"
                                                 :key="category.id"
                                                 :value="category.id"
                                             >
