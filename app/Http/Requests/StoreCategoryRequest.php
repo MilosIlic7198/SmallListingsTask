@@ -42,7 +42,7 @@ class StoreCategoryRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-zA-Z\s-]+$/',
-                Rule::unique('categories', 'name'),
+                Rule::unique('categories', 'name')->whereNull('deleted_at'),
             ],
         ];
 

@@ -52,10 +52,23 @@ class CategoryService
     {
         DB::transaction(function () use ($data) {
             foreach ($data['newCategories'] as $newCategory) {
-                Category::create([
-                    'name' => $newCategory['name'],
-                    'parent_id' => $data['child_id'] ?? $data['parent_id'],
-                ]);
+                $name = $newCategory['name'];
+
+                // Check for a soft-deleted category with the same name
+                $existing = Category::onlyTrashed()->where('name', $name)->first();
+
+                if ($existing) {
+                    // Restore and update if needed
+                    $existing->restore();
+                    $existing->parent_id = $data['child_id'] ?? $data['parent_id'];
+                    $existing->save();
+                } else {
+                    // Create new category
+                    Category::create([
+                        'name' => $name,
+                        'parent_id' => $data['child_id'] ?? $data['parent_id'],
+                    ]);
+                }
             }
         });
     }

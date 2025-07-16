@@ -91,15 +91,14 @@ After running the database seeder, the following users will be available:
 8. **To build and run the project, use the following commands:**
 
 ```bash
-# Build the project
-npm run build
-
 # Run the development server
 npm run dev
 
 # Start the PHP server
 php artisan serve
 ```
+
+<<-- Go to: localhost:8000 -->>
 
 That is it . . .
 
