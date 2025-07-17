@@ -18,11 +18,41 @@ defineProps({
                 <main class="flex-1 py-6 px-4 sm:px-6 lg:px-8">
                     <div class="max-w-7xl mx-auto">
                         <div class="bg-white p-6 rounded-lg shadow-sm">
-                            <div class="flex justify-between items-center mb-6">
+                            <div
+                                class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4"
+                            >
                                 <h2 class="text-2xl font-bold">Listings</h2>
+                                <!-- Search Form -->
+                                <div
+                                    class="flex justify-center w-full sm:w-auto"
+                                >
+                                    <form
+                                        @submit.prevent=""
+                                        class="flex flex-col sm:flex-row gap-2 items-center w-full max-w-lg"
+                                    >
+                                        <input
+                                            type="text"
+                                            placeholder="Search listings..."
+                                            class="flex-1 rounded-md border-gray-300 shadow-sm px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                                        />
+                                        <button
+                                            type="submit"
+                                            class="bg-red-600 text-white rounded-md py-2 px-4 text-sm hover:bg-red-700 transition"
+                                        >
+                                            Search
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click=""
+                                            class="bg-gray-600 text-white rounded-md py-2 px-4 text-sm hover:bg-gray-700 transition"
+                                        >
+                                            Clear
+                                        </button>
+                                    </form>
+                                </div>
                                 <Link
                                     :href="route('shared.listings.create')"
-                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-center"
                                 >
                                     Create
                                 </Link>
