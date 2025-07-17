@@ -27,6 +27,7 @@ class ListingController extends Controller
             $listings = $this->listingService->getAllListings($request);
             return Inertia::render('Admin/Listings', [
                 'listings' => $listings,
+                'search' => $request->input('search', ''),
             ]);
         } catch (\Exception $e) {
             return redirect()->route('admin.listings.index')->with('flash', [

@@ -1,12 +1,27 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
+import { ref } from "vue";
 
-defineProps({
-    listings: {
-        type: Object,
-    },
+const props = defineProps({
+    listings: Object,
+    search: String,
 });
+
+const search = ref(props.search || "");
+
+function applySearchFilter() {
+    router.get(route("admin.listings.index"), {
+        search: search.value,
+    });
+}
+
+function clearSearchFilter() {
+    search.value = "";
+    router.get(route("admin.listings.index"), {
+        search: "",
+    });
+}
 </script>
 
 <template>
@@ -27,10 +42,11 @@ defineProps({
                                     class="flex justify-center w-full sm:w-auto"
                                 >
                                     <form
-                                        @submit.prevent=""
+                                        @submit.prevent="applySearchFilter"
                                         class="flex flex-col sm:flex-row gap-2 items-center w-full max-w-lg"
                                     >
                                         <input
+                                            v-model="search"
                                             type="text"
                                             placeholder="Search listings..."
                                             class="flex-1 rounded-md border-gray-300 shadow-sm px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
@@ -43,7 +59,7 @@ defineProps({
                                         </button>
                                         <button
                                             type="button"
-                                            @click=""
+                                            @click="clearSearchFilter"
                                             class="bg-gray-600 text-white rounded-md py-2 px-4 text-sm hover:bg-gray-700 transition"
                                         >
                                             Clear
@@ -121,7 +137,7 @@ defineProps({
                                             <span class="font-medium"
                                                 >Price:</span
                                             >
-                                            ${{ listing.price }}
+                                            {{ listing.price }}
                                         </div>
                                         <div class="text-sm text-gray-700">
                                             <span class="font-medium"
