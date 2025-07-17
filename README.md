@@ -88,7 +88,7 @@ After running the database seeder, the following users will be available:
     Password: `password`  
     Role: `customer`
 
-8. **To build and run the project, use the following commands:**
+8. **To run the project, use the following commands:**
 
 ```bash
 # Run the development server
@@ -98,8 +98,8 @@ npm run dev
 php artisan serve
 ```
 
-<<-- Go to: localhost:8000 -->>
+9. **View project:**
 
-That is it . . .
+    - Go to: localhost:8000
 
 **Enjoy! 😃**
