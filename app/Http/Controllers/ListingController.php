@@ -8,6 +8,7 @@ use App\Services\ListingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Gate;
 
 class ListingController extends Controller
 {
@@ -115,6 +116,7 @@ class ListingController extends Controller
      */
     public function edit(Listing $listing): Response
     {
+        Gate::authorize('update', $listing); // Policy for owener check. It Will throw 403 if not authorized.
         $listing->load('category', 'user');
         $pathIds = $this->listingService->getCategoryHierarchy($listing);
 
@@ -134,6 +136,7 @@ class ListingController extends Controller
      */
     public function update(StoreListingRequest $request, Listing $listing)
     {
+        Gate::authorize('update', $listing); // Policy for owener check. It Will throw 403 if not authorized.
         $redirectRoute = $this->getRedirectRouteByRole();
         try {
             $this->listingService->updateListing(

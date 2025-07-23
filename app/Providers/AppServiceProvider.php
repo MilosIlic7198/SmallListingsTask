@@ -6,7 +6,10 @@ use Illuminate\Support\Facades\Vite;
 use App\Services\ListingService;
 use App\Services\CategoryService;
 use App\Services\UserService;
+use App\Models\Listing;
 use Illuminate\Support\ServiceProvider;
+use App\Policies\ListingPolicy;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,5 +35,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        Gate::policy(Listing::class, ListingPolicy::class);
     }
 }
