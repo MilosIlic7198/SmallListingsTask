@@ -89,12 +89,23 @@ class ListingService
      * @param int $perPage
      * @return \Illuminate\Pagination\LengthAwarePaginator
      */
-    public function getCustomerListings(int $perPage = 4)
+    public function getCustomerListings(Request $request, int $perPage = 4)
     {
-        return Listing::with('category')
-            ->where('user_id', Auth::id())
-            ->whereNull('deleted_at')
-            ->paginate($perPage);
+        $query = Listing::query()->with('category')->where('user_id', Auth::id())->whereNull('deleted_at');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                        $categoryQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
     /**

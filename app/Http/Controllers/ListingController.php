@@ -59,10 +59,11 @@ class ListingController extends Controller
     /**
      * Display the customer listings.
      */
-    public function customerListings(): Response
+    public function customerListings(Request $request): Response
     {
         return Inertia::render('Customer/Listings', [
-            'listings' => $this->listingService->getCustomerListings(),
+            'listings' => $this->listingService->getCustomerListings($request),
+            'search' => $request->input('search', ''),
         ]);
     }
 
